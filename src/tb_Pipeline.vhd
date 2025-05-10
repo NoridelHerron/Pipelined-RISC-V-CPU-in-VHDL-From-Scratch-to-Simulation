@@ -22,6 +22,7 @@ architecture sim of tb_CPU_RISCV is
             IF_inst_out            : out std_logic_vector(31 downto 0);
             IF_pc_out              : out std_logic_vector(31 downto 0);
             -- ID
+
             ID_EX_op_out           : out std_logic_vector(2 downto 0);
             ID_EX_f3_out           : out std_logic_vector(2 downto 0);
             ID_EX_f7_out           : out std_logic_vector(6 downto 0);
@@ -32,8 +33,8 @@ architecture sim of tb_CPU_RISCV is
 
             -- EX STAGE 
             EX_MEM_result_out      : out std_logic_vector(31 downto 0);
-            Z_out, N_out           : out std_logic;
-            C_out, V_out           : out std_logic;
+            -- Flags(3) = Z flag; Flags(2) = N flag; Flags(1) = C flag; Flags(0) = V flag
+            Flags_out              : out std_logic_vector(3 downto 0);
             EX_MEM_op_out          : out std_logic_vector(2 downto 0);
             EX_MEM_rd_out          : out std_logic_vector(4 downto 0);
             EX_MEM_store_rs2_out   : out std_logic_vector(31 downto 0);
@@ -59,8 +60,8 @@ architecture sim of tb_CPU_RISCV is
 
     -- DUT observed signals
     -- IF
-    signal IF_pc_out             : std_logic_vector(31 downto 0) := (others => '0');
     signal IF_inst_out           : std_logic_vector(31 downto 0);
+    signal IF_pc_out             : std_logic_vector(31 downto 0) := (others => '0');
     
     -- ID
     signal ID_EX_op_out          : std_logic_vector(2 downto 0) := (others => '0');
@@ -73,8 +74,8 @@ architecture sim of tb_CPU_RISCV is
     
     -- EX
     signal EX_MEM_store_rs2_out  : std_logic_vector(31 downto 0) := (others => '0');
-    signal Z_out, N_out          : std_logic := '0';
-    signal C_out, V_out          : std_logic := '0';
+    -- Flags(3) = Z flag; Flags(2) = N flag; Flags(1) = C flag; Flags(0) = V flag
+    signal Flags_out             : std_logic_vector(3 downto 0);
     signal EX_MEM_op_out         : std_logic_vector(2 downto 0) := (others => '0');
     signal EX_MEM_rd_out         : std_logic_vector(4 downto 0) := (others => '0');
     signal EX_MEM_result_out     : std_logic_vector(31 downto 0) := (others => '0');
@@ -97,7 +98,7 @@ begin
             clk                     => clk,
             reset                   => reset,
             IF_inst_out             => IF_inst_out,
-            IF_pc_out               => IF_pc_out,
+            IF_pc_out               => IF_pc_out,   
             ID_EX_op_out            => ID_EX_op_out,
             ID_EX_f3_out            => ID_EX_f3_out,
             ID_EX_f7_out            => ID_EX_f7_out,
@@ -106,10 +107,7 @@ begin
             ID_EX_store_rs2_out     => ID_EX_store_rs2_out,
             ID_EX_rd_out            => ID_EX_rd_out,
             EX_MEM_result_out       => EX_MEM_result_out,
-            Z_out                   => Z_out,
-            N_out                   => N_out,
-            C_out                   => C_out,
-            V_out                   => V_out,
+            Flags_out               => Flags_out,
             EX_MEM_op_out           => EX_MEM_op_out,
             EX_MEM_rd_out           => EX_MEM_rd_out,
             EX_MEM_store_rs2_out    => EX_MEM_store_rs2_out,
@@ -151,16 +149,16 @@ begin
         assert IF_inst_out /= x"00000013"
             report "Fetched instruction is NOP (possible ROM problem)" severity warning;
             
-        assert ID_EX_rd_out = EX_MEM_rd_out
+        assert ID_EX_rd_out = EX_MEM_rd_out and ID_EX_rd_out /= "00000"
           report "EX stage did not receive correct RD from ID stage" severity warning;
+          report " RD_ID = " & to_hexstring(ID_EX_rd_out) &" RD_EX = " & to_hexstring(EX_MEM_rd_out) severity warning;
         
         assert EX_MEM_rd_out = MEM_WB_rd_out
           report "MEM stage RD mismatch from EX stage" severity warning;
         
         assert WB_ID_rd_out = MEM_WB_rd_out
           report "WB stage RD mismatch from MEM stage" severity warning;
-        
-    
+          
         assert WB_ID_write_out = '1'
           report "reg_write not active in WB stage" severity error;
 

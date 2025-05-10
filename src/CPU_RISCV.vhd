@@ -33,8 +33,8 @@ entity CPU_RISCV is
 
         -- EX
         EX_MEM_result_out      : out std_logic_vector(31 downto 0);
-        Z_out, N_out           : out std_logic;
-        C_out, V_out           : out std_logic;
+        -- Flags(3) = Z flag; Flags(2) = N flag; Flags(1) = C flag; Flags(0) = V flag
+        Flags_out              : out std_logic_vector(3 downto 0);      
         EX_MEM_op_out          : out std_logic_vector(2 downto 0);
         EX_MEM_rd_out          : out std_logic_vector(4 downto 0);
         EX_MEM_store_rs2_out   : out std_logic_vector(31 downto 0);
@@ -66,6 +66,7 @@ architecture FLOW of CPU_RISCV is
         Port (
             clk          : in  std_logic;
             rst          : in  std_logic;
+
             instr_in     : in  std_logic_vector(31 downto 0);
             data_in      : in  std_logic_vector(31 downto 0);
             wb_rd        : in  std_logic_vector(4 downto 0);
@@ -127,8 +128,8 @@ architecture FLOW of CPU_RISCV is
     end component;
 
     -- Internal pipeline signals
-    signal IF_instruction       : std_logic_vector(31 downto 0);
-    signal IF_pc_out1           : std_logic_vector(31 downto 0);
+    signal IF_instruction       : std_logic_vector(31 downto 0);  
+    signal IF_ID_pc_out1        : std_logic_vector(31 downto 0);
 
     signal ID_EX_op             : std_logic_vector(2 downto 0);
     signal ID_EX_f3             : std_logic_vector(2 downto 0);
@@ -138,8 +139,9 @@ architecture FLOW of CPU_RISCV is
     signal ID_EX_store_rs2      : std_logic_vector(31 downto 0);
     signal ID_EX_rd             : std_logic_vector(4 downto 0);
 
+    signal ID_EX_pc_out1        : std_logic_vector(31 downto 0);
+    signal Flags                : std_logic_vector(3 downto 0);
     signal EX_MEM_result        : std_logic_vector(31 downto 0);
-    signal Z, N, C, V           : std_logic;
     signal EX_MEM_op            : std_logic_vector(2 downto 0);
     signal EX_MEM_rd            : std_logic_vector(4 downto 0);
     signal EX_MEM_store_rs2     : std_logic_vector(31 downto 0);
@@ -159,7 +161,7 @@ begin
             clk       => clk,
             rst       => reset,
             instr_out => IF_instruction,
-            pc_out    => IF_pc_out1
+            pc_out    => IF_ID_pc_out1
         );
 
     ID_STAGE_UUT : DECODER
@@ -179,6 +181,7 @@ begin
             rd_out       => ID_EX_rd
         );
 
+    -- Flags(3) = Z flag; Flags(2) = N flag; Flags(1) = C flag; Flags(0) = V flag
     EX_STAGE_UUT : EX_STAGE
         port map (
             clk             => clk,
@@ -191,10 +194,10 @@ begin
             rd_in           => ID_EX_rd,
             store_rs2_in    => ID_EX_store_rs2,
             result_out      => EX_MEM_result,
-            Z_flag_out      => Z,
-            V_flag_out      => V,
-            C_flag_out      => C,
-            N_flag_out      => N,
+            Z_flag_out      => Flags(3),
+            V_flag_out      => Flags(2),
+            C_flag_out      => Flags(1),
+            N_flag_out      => Flags(0),
             write_data_out  => EX_MEM_store_rs2,
             op_out          => EX_MEM_op,
             rd_out          => EX_MEM_rd
@@ -224,7 +227,7 @@ begin
 
     -- Assign to top-level outputs
     IF_inst_out             <= IF_instruction;
-    IF_pc_out               <= IF_pc_out1;
+    IF_pc_out               <= IF_ID_pc_out1;
     ID_EX_op_out            <= ID_EX_op;
     ID_EX_f3_out            <= ID_EX_f3;
     ID_EX_f7_out            <= ID_EX_f7;
@@ -233,10 +236,7 @@ begin
     ID_EX_store_rs2_out     <= ID_EX_store_rs2;
     ID_EX_rd_out            <= ID_EX_rd;
     EX_MEM_result_out       <= EX_MEM_result;
-    Z_out                   <= Z;
-    N_out                   <= N;
-    C_out                   <= C;
-    V_out                   <= V;
+    Flags_out               <= Flags;
     EX_MEM_op_out           <= EX_MEM_op;
     EX_MEM_rd_out           <= EX_MEM_rd;
     EX_MEM_store_rs2_out    <= EX_MEM_store_rs2;

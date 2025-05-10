@@ -32,12 +32,12 @@ architecture behavior of INST_MEM is
     type memory_array is array (0 to 255) of std_logic_vector(31 downto 0);
     -- list of instructions
     signal rom : memory_array := (
-        0  => x"01498913",  
-        1  => x"005A0A13",  
-        2  => x"002DAB13",  
-        3  => x"009DAB93",  
-        4  => x"0009AD83",  
-        5  => x"015A4CB3",  
+        0   => x"01498933",  
+        1   => x"41498933",  
+        2   => x"0149F933",  
+        3   => x"0149E933",  
+        4   => x"0009A903",  
+        5   => x"01392023",     
         others => x"00000013"  -- NOP (addi x0, x0, 0)
     );
 

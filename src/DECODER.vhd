@@ -20,7 +20,10 @@ entity DECODER is
     Port (
         clk         : in  std_logic;
         rst         : in  std_logic;
+        -- From IF
         instr_in    : in  std_logic_vector(31 downto 0);
+        
+        -- From WB
         data_in     : in  std_logic_vector(31 downto 0);
         wb_rd       : in  std_logic_vector(4 downto 0);  -- Writeback destination reg
         wb_reg_write: in  std_logic;                     -- Writeback enable signal
@@ -35,7 +38,7 @@ entity DECODER is
         reg_data2   : out std_logic_vector(31 downto 0);  -- value in register source 2 or immediate
 
         -- passthrough 
-        store_rs2    : out std_logic_vector(31 downto 0);  -- RS2 value for stores   
+        store_rs2   : out std_logic_vector(31 downto 0);  -- RS2 value for stores   
         rd_out      : out std_logic_vector(4 downto 0)
     );
 end DECODER;
@@ -63,7 +66,7 @@ architecture behavior of DECODER is
     signal read_data1_int   : std_logic_vector(31 downto 0);
     signal read_data2_int   : std_logic_vector(31 downto 0);
     signal imm              : std_logic_vector(31 downto 0) := (others => '0');
-
+    
 begin
 
     -- Register file instantiation
