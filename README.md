@@ -13,7 +13,7 @@ This project is a fully custom, 5-stage pipelined RISC-V CPU designed and implem
 - All design and testing done by me as a deep-dive into CPU architecture
 
 ## Pipeline Diagram
-![Pipeline Diagram with no complexity no branching and jumping yet](images/pipeline_diagram.png)  
+![Pipeline Diagram with no complexity no branching and jumping yet](images/Pipeline_diagram.png)  
 
 
 **Note** Explore the repositories for each stage and review the documentation and waveforms for insight into the design and verification process.
