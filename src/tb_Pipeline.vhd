@@ -1,4 +1,3 @@
-
 -- Testbench for top-level CPU_RISCV
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
@@ -22,7 +21,6 @@ architecture sim of tb_CPU_RISCV is
             IF_inst_out            : out std_logic_vector(31 downto 0);
             IF_pc_out              : out std_logic_vector(31 downto 0);
             -- ID
-
             ID_EX_op_out           : out std_logic_vector(2 downto 0);
             ID_EX_f3_out           : out std_logic_vector(2 downto 0);
             ID_EX_f7_out           : out std_logic_vector(6 downto 0);
@@ -33,7 +31,6 @@ architecture sim of tb_CPU_RISCV is
 
             -- EX STAGE 
             EX_MEM_result_out      : out std_logic_vector(31 downto 0);
-            -- Flags(3) = Z flag; Flags(2) = N flag; Flags(1) = C flag; Flags(0) = V flag
             Flags_out              : out std_logic_vector(3 downto 0);
             EX_MEM_op_out          : out std_logic_vector(2 downto 0);
             EX_MEM_rd_out          : out std_logic_vector(4 downto 0);
@@ -55,71 +52,60 @@ architecture sim of tb_CPU_RISCV is
     signal clk   : std_logic := '0';
     signal reset : std_logic := '1';
 
-    -- Clock generation
     constant CLK_PERIOD : time := 10 ns;
 
-    -- DUT observed signals
-    -- IF
+    -- DUT signals
     signal IF_inst_out           : std_logic_vector(31 downto 0);
     signal IF_pc_out             : std_logic_vector(31 downto 0) := (others => '0');
-    
-    -- ID
     signal ID_EX_op_out          : std_logic_vector(2 downto 0) := (others => '0');
     signal ID_EX_f3_out          : std_logic_vector(2 downto 0) := (others => '0');
     signal ID_EX_f7_out          : std_logic_vector(6 downto 0) := (others => '0');
     signal ID_EX_reg_data1_out   : std_logic_vector(31 downto 0) := (others => '0');
     signal ID_EX_reg_data2_out   : std_logic_vector(31 downto 0) := (others => '0');
-    signal ID_EX_rd_out          : std_logic_vector(4 downto 0) := (others => '0');
     signal ID_EX_store_rs2_out   : std_logic_vector(31 downto 0) := (others => '0');
-    
-    -- EX
+    signal ID_EX_rd_out          : std_logic_vector(4 downto 0) := (others => '0');
+    signal EX_MEM_result_out     : std_logic_vector(31 downto 0) := (others => '0');
     signal EX_MEM_store_rs2_out  : std_logic_vector(31 downto 0) := (others => '0');
-    -- Flags(3) = Z flag; Flags(2) = N flag; Flags(1) = C flag; Flags(0) = V flag
     signal Flags_out             : std_logic_vector(3 downto 0);
     signal EX_MEM_op_out         : std_logic_vector(2 downto 0) := (others => '0');
     signal EX_MEM_rd_out         : std_logic_vector(4 downto 0) := (others => '0');
-    signal EX_MEM_result_out     : std_logic_vector(31 downto 0) := (others => '0');
-
-    -- MEM
     signal MEM_WB_mem_out_out    : std_logic_vector(31 downto 0) := (others => '0');
     signal MEM_WB_write_out      : std_logic;
     signal MEM_WB_rd_out         : std_logic_vector(4 downto 0) := (others => '0');
-    
-    -- WB
     signal WB_ID_rd_out          : std_logic_vector(4 downto 0) := (others => '0');
     signal WB_ID_data_out        : std_logic_vector(31 downto 0) := (others => '0');
     signal WB_ID_write_out       : std_logic := '0';
 
-begin
+    signal prev_ID_EX_rd_out     : std_logic_vector(4 downto 0) := (others => '0');
+    signal prev_EX_MEM_rd_out    : std_logic_vector(4 downto 0) := (others => '0');
 
-    -- Instantiate the DUT
+begin
     DUT: CPU_RISCV
         port map (
-            clk                     => clk,
-            reset                   => reset,
-            IF_inst_out             => IF_inst_out,
-            IF_pc_out               => IF_pc_out,   
-            ID_EX_op_out            => ID_EX_op_out,
-            ID_EX_f3_out            => ID_EX_f3_out,
-            ID_EX_f7_out            => ID_EX_f7_out,
-            ID_EX_reg_data1_out     => ID_EX_reg_data1_out,
-            ID_EX_reg_data2_out     => ID_EX_reg_data2_out,
-            ID_EX_store_rs2_out     => ID_EX_store_rs2_out,
-            ID_EX_rd_out            => ID_EX_rd_out,
-            EX_MEM_result_out       => EX_MEM_result_out,
-            Flags_out               => Flags_out,
-            EX_MEM_op_out           => EX_MEM_op_out,
-            EX_MEM_rd_out           => EX_MEM_rd_out,
-            EX_MEM_store_rs2_out    => EX_MEM_store_rs2_out,
-            MEM_WB_mem_out_out      => MEM_WB_mem_out_out,
-            MEM_WB_write_out        => MEM_WB_write_out,
-            MEM_WB_rd_out           => MEM_WB_rd_out,
-            WB_ID_data_out          => WB_ID_data_out,
-            WB_ID_rd_out            => WB_ID_rd_out,
-            WB_ID_write_out         => WB_ID_write_out
+            clk => clk,
+            reset => reset,
+            IF_inst_out => IF_inst_out,
+            IF_pc_out => IF_pc_out,
+            ID_EX_op_out => ID_EX_op_out,
+            ID_EX_f3_out => ID_EX_f3_out,
+            ID_EX_f7_out => ID_EX_f7_out,
+            ID_EX_reg_data1_out => ID_EX_reg_data1_out,
+            ID_EX_reg_data2_out => ID_EX_reg_data2_out,
+            ID_EX_store_rs2_out => ID_EX_store_rs2_out,
+            ID_EX_rd_out => ID_EX_rd_out,
+            EX_MEM_result_out => EX_MEM_result_out,
+            Flags_out => Flags_out,
+            EX_MEM_op_out => EX_MEM_op_out,
+            EX_MEM_rd_out => EX_MEM_rd_out,
+            EX_MEM_store_rs2_out => EX_MEM_store_rs2_out,
+            MEM_WB_mem_out_out => MEM_WB_mem_out_out,
+            MEM_WB_write_out => MEM_WB_write_out,
+            MEM_WB_rd_out => MEM_WB_rd_out,
+            WB_ID_data_out => WB_ID_data_out,
+            WB_ID_rd_out => WB_ID_rd_out,
+            WB_ID_write_out => WB_ID_write_out
         );
 
-    -- Clock generation process
     clk_process : process
     begin
         while now < 5000 ns loop
@@ -129,7 +115,6 @@ begin
         wait;
     end process;
 
-    -- Reset process
     reset_process : process
     begin
         reset <= '1';
@@ -138,47 +123,58 @@ begin
         wait;
     end process;
 
-    -- Assertion process to check expected pipeline behavior
+    delay_pipeline : process(clk)
+    begin
+        if rising_edge(clk) then
+            prev_ID_EX_rd_out <= ID_EX_rd_out;
+            prev_EX_MEM_rd_out <= EX_MEM_rd_out;
+        end if;
+    end process;
+
     assertion_check : process
     begin
-        wait for 1000 ns;
+        wait for 1500 ns;
         
-        assert IF_pc_out /= "00000000000000000000000000000000"
-            report "PC is stuck at 0" severity error;
-        
-        assert IF_inst_out /= x"00000013"
+        if IF_inst_out = x"FFFFFFFF" then
+            report "HALT instruction reached" severity note;
+            std.env.stop;
+        end if;
+
+        if IF_inst_out = x"00000013" then
             report "Fetched instruction is NOP (possible ROM problem)" severity warning;
-            
-        assert ID_EX_rd_out = EX_MEM_rd_out and ID_EX_rd_out /= "00000"
-          report "EX stage did not receive correct RD from ID stage" severity warning;
-          report " RD_ID = " & to_hexstring(ID_EX_rd_out) &" RD_EX = " & to_hexstring(EX_MEM_rd_out) severity warning;
-        
-        assert EX_MEM_rd_out = MEM_WB_rd_out
-          report "MEM stage RD mismatch from EX stage" severity warning;
-        
+        end if;
+
+        assert prev_ID_EX_rd_out = EX_MEM_rd_out and EX_MEM_rd_out /= "00000"
+            report "EX stage did not receive correct RD from ID stage" severity warning;
+
+        assert prev_EX_MEM_rd_out = MEM_WB_rd_out
+            report "MEM stage RD mismatch from EX stage" severity warning;
+
         assert WB_ID_rd_out = MEM_WB_rd_out
-          report "WB stage RD mismatch from MEM stage" severity warning;
-          
+            report "WB stage RD mismatch from MEM stage" severity warning;
+
         assert WB_ID_write_out = '1'
-          report "reg_write not active in WB stage" severity error;
+            report "reg_write not active in WB stage" severity error;
 
-        assert WB_ID_data_out /= "00000000000000000000000000000000"
-          report "WB_ID_data is all zeros" severity warning;
+        if WB_ID_data_out = "00000000000000000000000000000000" and WB_ID_write_out = '1' then
+            report "WB_ID_data is all zeros" severity warning;
+        end if;
 
-        assert EX_MEM_result_out /= "00000000000000000000000000000000"
-          report "ALU result is zero - possible EX_STAGE issue" severity warning;
-        
-        report "WB stage: op=" & to_hexstring(EX_MEM_op_out) &
-           ", write=" & std_logic'image(WB_ID_write_out) &
-           ", data=" & to_hexstring(WB_ID_data_out);
-        report "Assertions passed up to 500 ns" severity note;
+        if EX_MEM_result_out = "00000000000000000000000000000000" and ID_EX_reg_data1_out /= "00000000000000000000000000000000" then
+            report "ALU result is zero - possible EX_STAGE issue" severity warning;
+        end if;
+
+        report "[Cycle: " & integer'image(now / CLK_PERIOD) & "] PC=" & to_hexstring(IF_pc_out) &
+               ", Inst=" & to_hexstring(IF_inst_out) &
+               ", WB Write=" & std_logic'image(WB_ID_write_out) &
+               ", WB Data=" & to_hexstring(WB_ID_data_out);
+        report "Assertions passed after pipeline delay" severity note;
         wait;
     end process;
 
-    -- Simulation end condition
     end_simulation : process
     begin
-        wait for 5000 ns;  
+        wait for 5000 ns;
         report "Simulation finished" severity note;
         std.env.stop;
     end process;

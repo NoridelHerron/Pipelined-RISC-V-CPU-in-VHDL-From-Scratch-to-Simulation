@@ -131,6 +131,14 @@ architecture FLOW of CPU_RISCV is
     signal IF_instruction       : std_logic_vector(31 downto 0);  
     signal IF_ID_pc_out1        : std_logic_vector(31 downto 0);
 
+    signal ID_op             : std_logic_vector(2 downto 0);
+    signal ID_f3             : std_logic_vector(2 downto 0);
+    signal ID_f7             : std_logic_vector(6 downto 0);
+    signal ID_reg_data1      : std_logic_vector(31 downto 0);
+    signal ID_reg_data2      : std_logic_vector(31 downto 0);
+    signal ID_store_rs2      : std_logic_vector(31 downto 0);
+    signal ID_rd             : std_logic_vector(4 downto 0);
+
     signal ID_EX_op             : std_logic_vector(2 downto 0);
     signal ID_EX_f3             : std_logic_vector(2 downto 0);
     signal ID_EX_f7             : std_logic_vector(6 downto 0);
@@ -138,18 +146,31 @@ architecture FLOW of CPU_RISCV is
     signal ID_EX_reg_data2      : std_logic_vector(31 downto 0);
     signal ID_EX_store_rs2      : std_logic_vector(31 downto 0);
     signal ID_EX_rd             : std_logic_vector(4 downto 0);
-
-    signal ID_EX_pc_out1        : std_logic_vector(31 downto 0);
-    signal Flags                : std_logic_vector(3 downto 0);
+    
+    signal EX_Flags                : std_logic_vector(3 downto 0);
+    signal EX_result        : std_logic_vector(31 downto 0);
+    signal EX_op            : std_logic_vector(2 downto 0);
+    signal EX_rd            : std_logic_vector(4 downto 0);
+    signal EX_store_rs2     : std_logic_vector(31 downto 0);
+    
+    signal EX_MEM_Flags                : std_logic_vector(3 downto 0);
     signal EX_MEM_result        : std_logic_vector(31 downto 0);
     signal EX_MEM_op            : std_logic_vector(2 downto 0);
     signal EX_MEM_rd            : std_logic_vector(4 downto 0);
     signal EX_MEM_store_rs2     : std_logic_vector(31 downto 0);
 
+    signal MEM_mem_out       : std_logic_vector(31 downto 0);
+    signal MEM_write         : std_logic;
+    signal MEM_rd            : std_logic_vector(4 downto 0);
+    
     signal MEM_WB_mem_out       : std_logic_vector(31 downto 0);
     signal MEM_WB_write         : std_logic;
     signal MEM_WB_rd            : std_logic_vector(4 downto 0);
 
+    signal WB_data           : std_logic_vector(31 downto 0);
+    signal WB_rd             : std_logic_vector(4 downto 0);
+    signal WB_write          : std_logic;
+    
     signal WB_ID_data           : std_logic_vector(31 downto 0);
     signal WB_ID_rd             : std_logic_vector(4 downto 0);
     signal WB_ID_write          : std_logic;
@@ -172,15 +193,28 @@ begin
             data_in      => WB_ID_data,
             wb_rd        => WB_ID_rd,
             wb_reg_write => WB_ID_write,
-            op           => ID_EX_op,
-            f3           => ID_EX_f3,
-            f7           => ID_EX_f7,
-            reg_data1    => ID_EX_reg_data1,
-            reg_data2    => ID_EX_reg_data2,
-            store_rs2    => ID_EX_store_rs2,
-            rd_out       => ID_EX_rd
+            op           => ID_op,
+            f3           => ID_f3,
+            f7           => ID_f7,
+            reg_data1    => ID_reg_data1,
+            reg_data2    => ID_reg_data2,
+            store_rs2    => ID_store_rs2,
+            rd_out       => ID_rd
         );
 
+    process (clk)
+    begin
+        if rising_edge(clk) then
+            ID_EX_op             <= ID_op;
+            ID_EX_f3             <= ID_f3; 
+            ID_EX_f7             <= ID_f7;
+            ID_EX_reg_data1      <= ID_reg_data1;
+            ID_EX_reg_data2      <= ID_reg_data2;
+            ID_EX_store_rs2      <= ID_store_rs2; 
+            ID_EX_rd             <= ID_rd;
+        end if;
+    end process;
+    
     -- Flags(3) = Z flag; Flags(2) = N flag; Flags(1) = C flag; Flags(0) = V flag
     EX_STAGE_UUT : EX_STAGE
         port map (
@@ -193,15 +227,26 @@ begin
             f7_in           => ID_EX_f7,
             rd_in           => ID_EX_rd,
             store_rs2_in    => ID_EX_store_rs2,
-            result_out      => EX_MEM_result,
-            Z_flag_out      => Flags(3),
-            V_flag_out      => Flags(2),
-            C_flag_out      => Flags(1),
-            N_flag_out      => Flags(0),
-            write_data_out  => EX_MEM_store_rs2,
-            op_out          => EX_MEM_op,
-            rd_out          => EX_MEM_rd
+            result_out      => EX_result,
+            Z_flag_out      => EX_Flags(3),
+            V_flag_out      => EX_Flags(2),
+            C_flag_out      => EX_Flags(1),
+            N_flag_out      => EX_Flags(0),
+            write_data_out  => EX_store_rs2,
+            op_out          => EX_op,
+            rd_out          => EX_rd
         );
+    
+    process (clk)
+    begin
+        if rising_edge(clk) then
+            EX_MEM_Flags        <= EX_Flags;      
+            EX_MEM_result       <= EX_result;
+            EX_MEM_op           <= EX_op;
+            EX_MEM_rd           <= EX_rd;
+            EX_MEM_store_rs2    <= EX_store_rs2;
+        end if;
+    end process;       
 
     MEM_STAGE_UUT : MEM_STAGE
         port map (
@@ -210,21 +255,40 @@ begin
             write_data    => EX_MEM_store_rs2,
             op_in         => EX_MEM_op,
             rd_in         => EX_MEM_rd,
-            mem_out       => MEM_WB_mem_out,
-            reg_write_out => MEM_WB_write,
-            rd_out        => MEM_WB_rd
+            mem_out       => MEM_mem_out,
+            reg_write_out => MEM_write,
+            rd_out        => MEM_rd
         );
-
+    
+    process (clk)
+    begin
+        if rising_edge(clk) then
+            MEM_WB_mem_out  <= MEM_mem_out;       
+            MEM_WB_write    <= MEM_write;
+            MEM_WB_rd       <= MEM_rd;
+        end if;
+    end process;          
+    
+    
     WB_STAGE_UUT : WB_STAGE
         port map (
             data_in       => MEM_WB_mem_out,
             rd_in         => MEM_WB_rd,
             reg_write_in  => MEM_WB_write,
-            data_out      => WB_ID_data,
-            rd_out        => WB_ID_rd,
-            reg_write_out => WB_ID_write
+            data_out      => WB_data,
+            rd_out        => WB_rd,
+            reg_write_out => WB_write
         );
-
+    
+    process (clk)
+    begin
+        if rising_edge(clk) then
+            WB_ID_data      <= WB_data;         
+            WB_ID_rd        <= WB_rd;    
+            WB_ID_write     <= WB_write; 
+        end if;
+    end process;           
+    
     -- Assign to top-level outputs
     IF_inst_out             <= IF_instruction;
     IF_pc_out               <= IF_ID_pc_out1;
@@ -236,7 +300,7 @@ begin
     ID_EX_store_rs2_out     <= ID_EX_store_rs2;
     ID_EX_rd_out            <= ID_EX_rd;
     EX_MEM_result_out       <= EX_MEM_result;
-    Flags_out               <= Flags;
+    Flags_out               <= EX_MEM_Flags;
     EX_MEM_op_out           <= EX_MEM_op;
     EX_MEM_rd_out           <= EX_MEM_rd;
     EX_MEM_store_rs2_out    <= EX_MEM_store_rs2;

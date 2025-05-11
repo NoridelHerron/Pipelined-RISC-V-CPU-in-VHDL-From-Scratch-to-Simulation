@@ -67,6 +67,13 @@ architecture behavior of DECODER is
     signal read_data2_int   : std_logic_vector(31 downto 0);
     signal imm              : std_logic_vector(31 downto 0) := (others => '0');
     
+    -- Latched decode info
+    signal latched_op      : std_logic_vector(6 downto 0);
+    signal latched_f3      : std_logic_vector(2 downto 0);
+    signal latched_f7      : std_logic_vector(6 downto 0);
+    signal latched_rd      : std_logic_vector(4 downto 0);
+    signal latched_rs1     : std_logic_vector(4 downto 0);
+    signal latched_rs2     : std_logic_vector(4 downto 0);
 begin
 
     -- Register file instantiation
@@ -75,78 +82,93 @@ begin
         rs1_addr, rs2_addr, read_data1_int, read_data2_int
     );
 
-    process(clk, rst)
-        variable opcode_v : std_logic_vector(6 downto 0);
+    -- First clock: capture addresses
+    process(clk)
     begin
-        if rst = '1' then
-            reg_data1 <= (others => '0');
-            reg_data2 <= (others => '0');
-            op        <= "000";
-            f3        <= (others => '0');
-            f7        <= (others => '0');
-            rd_out    <= (others => '0');
-            imm       <= (others => '0');
-            store_rs2 <= (others => '0');
+        if rising_edge(clk) then
+            if rst = '1' then
+                latched_op  <= (others => '0');
+                latched_f3  <= (others => '0');
+                latched_f7  <= (others => '0');
+                latched_rd  <= (others => '0');
+                latched_rs1 <= (others => '0');
+                latched_rs2 <= (others => '0');
 
-        elsif rising_edge(clk) then
-            if instr_in /= "00000000000000000000000000000000" then
-                opcode_v  := instr_in(6 downto 0);
-                f3        <= instr_in(14 downto 12);
-                f7        <= instr_in(31 downto 25);
-                rs1_addr  <= instr_in(19 downto 15);
-                rs2_addr  <= instr_in(24 downto 20);
-                rd_addr   <= instr_in(11 downto 7);
+                rs1_addr    <= (others => '0');
+                rs2_addr    <= (others => '0');
+
             else
-                opcode_v := (others => '0');
-                f3       <= (others => '0');
-                f7       <= (others => '0');
-                rs1_addr <= (others => '0');
-                rs2_addr <= (others => '0');
-                rd_addr  <= (others => '0');
+                latched_op  <= instr_in(6 downto 0);
+                latched_f3  <= instr_in(14 downto 12);
+                latched_f7  <= instr_in(31 downto 25);
+                latched_rs1 <= instr_in(19 downto 15);
+                latched_rs2 <= instr_in(24 downto 20);
+                latched_rd  <= instr_in(11 downto 7);
+
+                rs1_addr    <= instr_in(19 downto 15);
+                rs2_addr    <= instr_in(24 downto 20);
             end if;
+        end if;
+    end process;
 
-            -- Decode control signals & immediate
-            case opcode_v is
-                when "0110011" => -- R-type
-                    op        <= "001";
-                    imm       <= (others => '0');
-                    reg_data1 <= read_data1_int;
-                    reg_data2 <= read_data2_int;
-                    store_rs2 <= (others => '0');
-                    rd_out    <= rd_addr;
+    -- Second clock: use values from previous cycle
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            if rst = '1' then
+                reg_data1 <= (others => '0');
+                reg_data2 <= (others => '0');
+                op        <= "000";
+                f3        <= (others => '0');
+                f7        <= (others => '0');
+                rd_out    <= (others => '0');
+                imm       <= (others => '0');
+                store_rs2 <= (others => '0');
 
-                when "0010011" => -- I-type (ALU)
-                    op        <= "001";
-                    imm       <= std_logic_vector(resize(signed(instr_in(31 downto 20)), 32));
-                    reg_data1 <= read_data1_int;
-                    reg_data2 <= imm;
-                    rd_out    <= rd_addr;
-                    store_rs2 <= (others => '0');
+            else
+                f3     <= latched_f3;
+                f7     <= latched_f7;
+                rd_out <= latched_rd;
 
-                when "0000011" => -- I-type (load)
-                    op        <= "010";
-                    imm       <= std_logic_vector(resize(signed(instr_in(31 downto 20)), 32));
-                    reg_data1 <= read_data1_int;
-                    reg_data2 <= imm;
-                    rd_out    <= rd_addr;
-                    store_rs2 <= (others => '0');
+                case latched_op is
+                    when "0110011" => -- R-type
+                        op        <= "001";
+                        imm       <= (others => '0');
+                        reg_data1 <= read_data1_int;
+                        reg_data2 <= read_data2_int;
+                        store_rs2 <= (others => '0');
 
-                when "0100011" => -- S-type (store)
-                    op        <= "011";
-                    imm       <= std_logic_vector(resize(signed(instr_in(31 downto 25) & instr_in(11 downto 7)), 32));
-                    reg_data1 <= read_data1_int;
-                    reg_data2 <= imm;
-                    store_rs2 <= read_data2_int;
-                    rd_out    <= (others => '0');
+                    when "0010011" => -- I-type (ALU)
+                        op        <= "001";
+                        imm       <= std_logic_vector(resize(signed(instr_in(31 downto 20)), 32));
+                        reg_data1 <= read_data1_int;
+                        reg_data2 <= imm;
+                        store_rs2 <= (others => '0');
 
-                when others =>
-                    op        <= "000";
-                    imm       <= (others => '0');
-                    reg_data1 <= (others => '0');
-                    reg_data2 <= (others => '0');
-                    rd_out    <= (others => '0');
-                    store_rs2 <= (others => '0');
-            end case;
+                    when "0000011" => -- I-type (load)
+                        op        <= "010";
+                        imm       <= std_logic_vector(resize(signed(instr_in(31 downto 20)), 32));
+                        reg_data1 <= read_data1_int;
+                        reg_data2 <= imm;
+                        store_rs2 <= (others => '0');
+
+                    when "0100011" => -- S-type (store)
+                        op        <= "011";
+                        imm       <= std_logic_vector(resize(signed(instr_in(31 downto 25) & instr_in(11 downto 7)), 32));
+                        reg_data1 <= read_data1_int;
+                        reg_data2 <= imm;
+                        store_rs2 <= read_data2_int;
+                        rd_out    <= (others => '0');
+
+                    when others =>
+                        op        <= "000";
+                        imm       <= (others => '0');
+                        reg_data1 <= (others => '0');
+                        reg_data2 <= (others => '0');
+                        rd_out    <= (others => '0');
+                        store_rs2 <= (others => '0');
+                end case;
+            end if;
         end if;
     end process;
 
