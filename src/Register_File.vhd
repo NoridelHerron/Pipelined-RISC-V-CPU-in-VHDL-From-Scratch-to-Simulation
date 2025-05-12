@@ -12,11 +12,16 @@ entity RegisterFile is
     Port (
         clk          : in  std_logic;
         rst          : in  std_logic;
+        -- Read or write
         write_enable : in  std_logic;
+        -- For store
         write_addr   : in  std_logic_vector(4 downto 0);
+        -- For load
         write_data   : in  std_logic_vector(31 downto 0);
+        -- register address
         read_addr1   : in  std_logic_vector(4 downto 0);
         read_addr2   : in  std_logic_vector(4 downto 0);
+        -- register values
         read_data1   : out std_logic_vector(31 downto 0);
         read_data2   : out std_logic_vector(31 downto 0)
     );
