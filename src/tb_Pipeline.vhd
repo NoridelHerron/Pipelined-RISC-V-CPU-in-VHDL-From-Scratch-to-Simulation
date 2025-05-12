@@ -56,6 +56,7 @@ architecture sim of tb_CPU_RISCV is
     constant CLK_PERIOD : time := 10 ns;
 
     -- DUT signals
+<<<<<<< HEAD
     signal IF_pc             : std_logic_vector(31 downto 0) := (others => '0');
     signal IF_inst           : std_logic_vector(31 downto 0); 
     
@@ -83,6 +84,41 @@ architecture sim of tb_CPU_RISCV is
     
     signal prev_ID_EX_rd     : std_logic_vector(4 downto 0) := (others => '0');
     signal prev_EX_MEM_rd    : std_logic_vector(4 downto 0) := (others => '0');
+=======
+    -- IF
+    signal IF_inst          : std_logic_vector(31 downto 0);
+    signal IF_pc            : std_logic_vector(31 downto 0) := (others => '0');
+
+    -- ID/EX
+    signal ID_EX_op         : std_logic_vector(2 downto 0) := (others => '0');
+    signal ID_EX_f3         : std_logic_vector(2 downto 0) := (others => '0');
+    signal ID_EX_f7         : std_logic_vector(6 downto 0) := (others => '0');
+    signal ID_EX_reg_data1  : std_logic_vector(31 downto 0) := (others => '0');
+    signal ID_EX_reg_data2  : std_logic_vector(31 downto 0) := (others => '0');
+    signal ID_EX_store_rs2  : std_logic_vector(31 downto 0) := (others => '0');
+    signal ID_EX_rd         : std_logic_vector(4 downto 0) := (others => '0');
+
+    -- EX/MEM
+    signal EX_MEM_result    : std_logic_vector(31 downto 0) := (others => '0');
+    signal EX_MEM_store_rs2 : std_logic_vector(31 downto 0) := (others => '0');
+    signal Flags            : std_logic_vector(3 downto 0);
+    signal EX_MEM_op        : std_logic_vector(2 downto 0) := (others => '0');
+    signal EX_MEM_rd        : std_logic_vector(4 downto 0) := (others => '0');
+   
+    -- MEM/WB
+    signal MEM_WB_mem       : std_logic_vector(31 downto 0) := (others => '0');
+    signal MEM_WB_write     : std_logic;
+    signal MEM_WB_rd        : std_logic_vector(4 downto 0) := (others => '0');
+    
+    -- WB/ID
+    signal WB_ID_rd         : std_logic_vector(4 downto 0) := (others => '0');
+    signal WB_ID_data       : std_logic_vector(31 downto 0) := (others => '0');
+    signal WB_ID_write      : std_logic := '0';
+
+    -- For data hazard detection
+    signal prev_ID_EX_rd    : std_logic_vector(4 downto 0) := (others => '0');
+    signal prev_EX_MEM_rd   : std_logic_vector(4 downto 0) := (others => '0');
+>>>>>>> 50227f78bb4d824b103d92dbf4160f664efd3d2c
 
 begin
     DUT: CPU_RISCV
@@ -105,7 +141,11 @@ begin
             EX_MEM_store_rs2_out => EX_MEM_store_rs2,
             MEM_WB_mem_out_out => MEM_WB_mem,
             MEM_WB_write_out => MEM_WB_write,
+<<<<<<< HEAD
             MEM_WB_rd_out => MEM_WB_rd,
+=======
+            MEM_WB_rd_out => MEM_WB_r,
+>>>>>>> 50227f78bb4d824b103d92dbf4160f664efd3d2c
             WB_ID_data_out => WB_ID_data,
             WB_ID_rd_out => WB_ID_rd,
             WB_ID_write_out => WB_ID_write
@@ -169,7 +209,11 @@ begin
             report "ALU result is zero - possible EX_STAGE issue" severity warning;
         end if;
 
+<<<<<<< HEAD
         report "[Cycle: " & integer'image(now / CLK_PERIOD) & "] PC=" & to_hexstring(IF_pc) &
+=======
+        report "[Cycle: " & integer'image(now / CLK_PERIOD) & "] PC=" & to_hexstring(IF_pc_out) &
+>>>>>>> 50227f78bb4d824b103d92dbf4160f664efd3d2c
                ", Inst=" & to_hexstring(IF_inst) &
                ", WB Write=" & std_logic'image(WB_ID_write) &
                ", WB Data=" & to_hexstring(WB_ID_data);
