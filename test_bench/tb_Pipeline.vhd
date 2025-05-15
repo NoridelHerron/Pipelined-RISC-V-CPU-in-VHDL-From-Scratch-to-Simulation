@@ -63,7 +63,7 @@ architecture sim of tb_CPU_RISCV is
     constant CLK_PERIOD : time := 10 ns;
     signal clk              : std_logic := '0';
     signal reset            : std_logic := '1';
-    signal FORWARDING       : std_logic := '0';
+    signal FORWARDING       : std_logic := '1';
     
     signal Flags            : std_logic_vector(3 downto 0);
     signal ID_EX_f3         : std_logic_vector(2 downto 0) := (others => '0');
@@ -137,7 +137,7 @@ begin
         reset <= '0';
         wait;
     end process;
-
+    
     end_simulation : process
     begin
         wait for 5000 ns;

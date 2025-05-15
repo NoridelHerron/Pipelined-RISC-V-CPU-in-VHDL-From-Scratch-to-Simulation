@@ -79,9 +79,6 @@ begin
 
     -- Register write enable (only ALU or Load)
     reg_write_out <= '1' when op_in = "001" or op_in = "010" else '0';
-
     -- Pass destination register
     rd_out      <= rd_in;
-    --pc_out      <= pc_in;
-   -- bubble_out  <= bubble_in;
 end behavior;

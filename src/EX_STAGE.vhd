@@ -80,15 +80,14 @@ begin
     begin
         if rst = '1' then  
             -- value will reset         
-            result_reg     <= (others => '0');
-            Z_flag_reg     <= '0';
-            V_flag_reg     <= '0';
-            C_flag_reg     <= '0';
-            N_flag_reg     <= '0';
-            op_reg         <= "000";     
-            rd_reg         <= (others => '0');
-            write_data_reg <= (others => '0');
-           -- bubble_out     <= '0';
+            result_out     <= (others => '0');
+            Z_flag_out     <= '0';
+            V_flag_out     <= '0';
+            C_flag_out     <= '0';
+            N_flag_out     <= '0';
+            op_out         <= "000";     
+            rd_out         <= (others => '0');
+            write_data_out <= (others => '0');
 
         elsif rising_edge(clk) then
             -- update on the rising edge
