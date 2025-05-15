@@ -51,16 +51,6 @@ architecture behavior of EX_STAGE is
         );
     end component;
 
-    -- Internal pipeline registers (EX/MEM)   
-    signal result_reg     : std_logic_vector(31 downto 0);
-    signal Z_flag_reg     : std_logic;
-    signal V_flag_reg     : std_logic;
-    signal C_flag_reg     : std_logic;
-    signal N_flag_reg     : std_logic;
-    signal op_reg         : std_logic_vector(2 downto 0);
-    signal rd_reg         : std_logic_vector(4 downto 0);
-    signal write_data_reg : std_logic_vector(31 downto 0);
-
     -- ALU wires
     signal alu_result     : std_logic_vector(31 downto 0);
     signal Z_flag_wire    : std_logic;

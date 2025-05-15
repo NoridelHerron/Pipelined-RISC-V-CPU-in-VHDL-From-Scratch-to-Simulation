@@ -14,14 +14,16 @@ end tb_CPU_RISCV;
 architecture sim of tb_CPU_RISCV is
     -- DUT component
     component CPU_RISCV is
-        Port (
-            clk                    : in std_logic;
+        Port (  clk                    : in std_logic;
             reset                  : in std_logic;
             -- For forwarding
             ENABLE_FORWARDING      : in std_logic;
+
+            -- Optional output for test bench
             -- IF
             IF_inst_out            : out std_logic_vector(31 downto 0);
             IF_pc_out              : out std_logic_vector(31 downto 0);
+
             -- ID
             ID_EX_op_out           : out std_logic_vector(2 downto 0);
             ID_EX_f3_out           : out std_logic_vector(2 downto 0);
@@ -29,9 +31,8 @@ architecture sim of tb_CPU_RISCV is
             ID_EX_reg_data1_out    : out std_logic_vector(31 downto 0);
             ID_EX_reg_data2_out    : out std_logic_vector(31 downto 0);
             ID_EX_store_rs2_out    : out std_logic_vector(31 downto 0);
-            ID_EX_rd_out           : out std_logic_vector(4 downto 0);
-            --ID_pc_out              : out std_logic_vector(31 downto 0);
-    
+            ID_EX_rd_out           : out std_logic_vector(4 downto 0);  
+
             -- EX
             EX_MEM_result_out      : out std_logic_vector(31 downto 0);
             -- Flags(3) = Z flag; Flags(2) = N flag; Flags(1) = C flag; Flags(0) = V flag
@@ -39,25 +40,16 @@ architecture sim of tb_CPU_RISCV is
             EX_MEM_op_out          : out std_logic_vector(2 downto 0);
             EX_MEM_rd_out          : out std_logic_vector(4 downto 0);
             EX_MEM_store_rs2_out   : out std_logic_vector(31 downto 0);
-            --EX_pc_out              : out std_logic_vector(31 downto 0);
-    
+
             -- MEM
             MEM_WB_mem_out_out     : out std_logic_vector(31 downto 0);
             MEM_WB_write_out       : out std_logic;
             MEM_WB_rd_out          : out std_logic_vector(4 downto 0);
-            --MEM_pc_out             : out std_logic_vector(31 downto 0);
-            
+ 
             -- WB
             WB_ID_data_out         : out std_logic_vector(31 downto 0);
             WB_ID_rd_out           : out std_logic_vector(4 downto 0);
-            WB_ID_write_out        : out std_logic
-            --WB_pc_out              : out std_logic_vector(31 downto 0);
-            
-            --Forward_A              : out std_logic_vector(1 downto 0);
-            --Forward_B              : out std_logic_vector(1 downto 0);                    
-            --num_stall_out          : out  std_logic_vector(1 downto 0)
-            --bubble_out             : out  std_logic    
-        );
+            WB_ID_write_out        : out std_logic );
     end component;
 
     constant CLK_PERIOD : time := 10 ns;

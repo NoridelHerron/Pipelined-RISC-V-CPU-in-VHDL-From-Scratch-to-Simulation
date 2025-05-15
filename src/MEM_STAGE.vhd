@@ -22,6 +22,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity MEM_STAGE is
     Port (  -- inputs
             clk           : in  std_logic;  
+            rst             : in  std_logic;
             -- input from EX/MEM REGISTERs
             alu_result    : in  std_logic_vector(31 downto 0); -- From EX stage
             write_data    : in  std_logic_vector(31 downto 0); -- From EX stage (store)
@@ -61,24 +62,41 @@ begin
     mem_write_sig <= '1' when op_in = "011" else '0'; -- Store
 
     -- Instantiate memory block
+    -- Memory access
     memory_block : DATA_MEM
-        port map ( clk, mem_read_sig, mem_write_sig, mem_address, write_data, mem_read_data );
-
+        port map (
+            clk        => clk,
+            mem_read   => mem_read_sig,
+            mem_write  => mem_write_sig,
+            address    => mem_address,
+            write_data => write_data,
+            read_data  => mem_read_data
+        );
+        
     -- Memory output logic
-    process(op_in, alu_result, mem_read_data)
-    begin
-        case op_in is
-            when "010" =>  -- Load: output comes from memory
-                mem_out <= mem_read_data;
-            when "001" =>  -- ALU: output passes through from ALU
-                mem_out <= alu_result;
-            when others => -- Store or NOP: output is irrelevant or 0
-                mem_out <= (others => '0');
-        end case;
+    process(clk)
+    begin  
+            if rst = '1' then
+                mem_out       <= (others => '0');
+                reg_write_out <= '0';
+                rd_out        <= (others => '0');
+            elsif rising_edge(clk) then
+                case op_in is
+                    when "010" =>  -- Load: output comes from memory
+                        mem_out <= mem_read_data;
+                    when "001" =>  -- ALU: output passes through from ALU
+                        mem_out <= alu_result;
+                    when others => -- Store or NOP: output is irrelevant or 0
+                        mem_out <= (others => '0');
+                end case;
+                -- Register write enable (only ALU or Load)
+                if op_in = "001" or op_in = "010" then
+                    reg_write_out <= '1';
+                else
+                    reg_write_out <= '0';
+                end if;
+                rd_out      <= rd_in;
+            end if;
+      
     end process;
-
-    -- Register write enable (only ALU or Load)
-    reg_write_out <= '1' when op_in = "001" or op_in = "010" else '0';
-    -- Pass destination register
-    rd_out      <= rd_in;
 end behavior;
