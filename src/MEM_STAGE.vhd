@@ -20,18 +20,17 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity MEM_STAGE is
-    Port (
-        clk           : in  std_logic;
-        alu_result    : in  std_logic_vector(31 downto 0); -- From EX stage
-        write_data    : in  std_logic_vector(31 downto 0); -- From EX stage (store)
-        op_in         : in  std_logic_vector(2 downto 0);  -- Control signal
-        rd_in         : in  std_logic_vector(4 downto 0);  -- Destination register
-        
-        -- Outputs to WB stage
-        mem_out       : out std_logic_vector(31 downto 0); -- Load data or passthrough ALU result
-        reg_write_out : out std_logic;                     -- Register write enable
-        rd_out        : out std_logic_vector(4 downto 0)   -- Pass-through
-    );
+    Port (  -- inputs
+            clk           : in  std_logic;  
+            -- input from EX/MEM REGISTERs
+            alu_result    : in  std_logic_vector(31 downto 0); -- From EX stage
+            write_data    : in  std_logic_vector(31 downto 0); -- From EX stage (store)
+            op_in         : in  std_logic_vector(2 downto 0);  -- Control signal
+            rd_in         : in  std_logic_vector(4 downto 0);  -- Destination register
+            -- Outputs to MEM/WB REGISTERs
+            mem_out       : out std_logic_vector(31 downto 0); -- Load data or passthrough ALU result
+            reg_write_out : out std_logic;                     -- Register write enable
+            rd_out        : out std_logic_vector(4 downto 0));   -- Pass-through
 end MEM_STAGE;
 
 architecture behavior of MEM_STAGE is
@@ -82,6 +81,7 @@ begin
     reg_write_out <= '1' when op_in = "001" or op_in = "010" else '0';
 
     -- Pass destination register
-    rd_out <= rd_in;
-
+    rd_out      <= rd_in;
+    --pc_out      <= pc_in;
+   -- bubble_out  <= bubble_in;
 end behavior;

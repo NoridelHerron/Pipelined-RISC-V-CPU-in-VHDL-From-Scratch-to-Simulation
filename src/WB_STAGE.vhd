@@ -13,15 +13,14 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity WB_STAGE is
-    Port (
-        data_in       : in  std_logic_vector(31 downto 0);     -- Final result from MEM_STAGE
-        rd_in         : in  std_logic_vector(4 downto 0);      -- Destination register
-        reg_write_in  : in  std_logic;                         -- Write enable signal from MEM_STAGE
-
-        data_out      : out std_logic_vector(31 downto 0);     -- Data to write to register file
-        rd_out        : out std_logic_vector(4 downto 0);      -- Register index
-        reg_write_out : out std_logic                          -- Write enable (pass-through)
-    );
+    Port (  -- inputs from MEM/WB REGISTER
+            data_in       : in  std_logic_vector(31 downto 0);     -- Final result from MEM_STAGE
+            rd_in         : in  std_logic_vector(4 downto 0);      -- Destination register
+            reg_write_in  : in  std_logic;                         -- Write enable signal from MEM_STAGE
+            -- output to ID STAGE
+            data_out      : out std_logic_vector(31 downto 0);     -- Data to write to register file
+            rd_out        : out std_logic_vector(4 downto 0);      -- Register index
+            reg_write_out : out std_logic);
 end WB_STAGE;
 
 architecture behavior of WB_STAGE is

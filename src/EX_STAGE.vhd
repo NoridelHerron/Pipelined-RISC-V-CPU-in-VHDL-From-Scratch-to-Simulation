@@ -11,30 +11,28 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity EX_STAGE is
     Port (
-        clk           : in  std_logic;
-        rst           : in  std_logic;
-
-        -- Inputs from ID/EX       
-        reg_data1_in  : in  std_logic_vector(31 downto 0);
-        reg_data2_in  : in  std_logic_vector(31 downto 0);
-        op_in         : in  std_logic_vector(2 downto 0);
-        f3_in         : in  std_logic_vector(2 downto 0);
-        f7_in         : in  std_logic_vector(6 downto 0); 
-        rd_in         : in  std_logic_vector(4 downto 0);
-        store_rs2_in  : in  std_logic_vector(31 downto 0);
-        
-        -- Outputs to MEM stage    
-        result_out    : out std_logic_vector(31 downto 0);
-        Z_flag_out    : out std_logic;
-        V_flag_out    : out std_logic;
-        C_flag_out    : out std_logic;
-        N_flag_out    : out std_logic;
-        write_data_out: out std_logic_vector(31 downto 0); -- Pass reg_data2 for store instructions
-
-        -- pass through the next stage
-        op_out        : out  std_logic_vector(2 downto 0);
-        rd_out        : out std_logic_vector(4 downto 0)
-    );
+            clk           : in  std_logic;
+            rst           : in  std_logic;
+            
+            reg_data1_in  : in  std_logic_vector(31 downto 0);
+            reg_data2_in  : in  std_logic_vector(31 downto 0);
+            op_in         : in  std_logic_vector(2 downto 0);
+            f3_in         : in  std_logic_vector(2 downto 0);
+            f7_in         : in  std_logic_vector(6 downto 0); 
+            rd_in         : in  std_logic_vector(4 downto 0);
+            store_rs2_in  : in  std_logic_vector(31 downto 0);
+            
+            -- Outputs to MEM stage    
+            result_out    : out std_logic_vector(31 downto 0);
+            Z_flag_out    : out std_logic;
+            V_flag_out    : out std_logic;
+            C_flag_out    : out std_logic;
+            N_flag_out    : out std_logic;
+            write_data_out: out std_logic_vector(31 downto 0); -- Pass reg_data2 for store instructions
+    
+            -- pass through the next stage
+            op_out        : out std_logic_vector(2 downto 0);
+            rd_out        : out std_logic_vector(4 downto 0) );
 end EX_STAGE;
 
 architecture behavior of EX_STAGE is
@@ -90,28 +88,19 @@ begin
             op_reg         <= "000";     
             rd_reg         <= (others => '0');
             write_data_reg <= (others => '0');
+           -- bubble_out     <= '0';
 
         elsif rising_edge(clk) then
             -- update on the rising edge
-            result_reg     <= alu_result;
-            Z_flag_reg     <= Z_flag_wire;
-            V_flag_reg     <= V_flag_wire;
-            C_flag_reg     <= C_flag_wire;
-            N_flag_reg     <= N_flag_wire;
-            op_reg         <= op_in;
-            rd_reg         <= rd_in;
-            write_data_reg <= store_rs2_in; -- Capture rs2 value
+            result_out     <= alu_result;
+            Z_flag_out     <= Z_flag_wire;
+            V_flag_out     <= V_flag_wire;
+            C_flag_out     <= C_flag_wire;
+            N_flag_out     <= N_flag_wire;
+            op_out         <= op_in;
+            rd_out         <= rd_in;
+            write_data_out <= store_rs2_in; -- Capture rs2 value      
         end if;
     end process;
-
-    -- Output assignments
-    result_out     <= result_reg;
-    Z_flag_out     <= Z_flag_reg;
-    V_flag_out     <= V_flag_reg;
-    C_flag_out     <= C_flag_reg;
-    N_flag_out     <= N_flag_reg;
-    op_out         <= op_reg;
-    rd_out         <= rd_reg;
-    write_data_out <= write_data_reg;
 
 end behavior;
