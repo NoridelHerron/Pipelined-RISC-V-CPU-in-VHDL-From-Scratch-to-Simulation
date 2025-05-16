@@ -21,7 +21,7 @@ entity DECODER is
             clk             : in  std_logic;
             rst             : in  std_logic;
             -- Enable Forwading
-            Forward_ON      : in  std_logic;
+            --Forward_ON      : in  std_logic;
             -- input from IF 
             instr_in        : in  std_logic_vector(31 downto 0); 
             -- input from WB
@@ -38,8 +38,8 @@ entity DECODER is
             store_rs2       : out std_logic_vector(31 downto 0);  -- RS2 value for stores   
             rd_out          : out std_logic_vector(4 downto 0);
             -- For forwading
-            Forward_A       : out std_logic_vector(1 downto 0);
-            Forward_B       : out std_logic_vector(1 downto 0); 
+          --  Forward_A       : out std_logic_vector(1 downto 0);
+           -- Forward_B       : out std_logic_vector(1 downto 0); 
             -- For inserting bubble/s or stalling   
             num_stall       : out std_logic_vector(1 downto 0) );
 end DECODER;
@@ -171,33 +171,6 @@ begin
             f7        <= f7_reg;  
             store_rs2 <= rs2S_reg;
          end if;         
-    end process;
-    
-    process (EX_OPC, MEM_OPC, EX_MEM_rd, MEM_WB_rd, rs1_addr, rs2_addr, Forward_ON)
-    begin
-        -- Default values
-        Forward_A  <= "00";
-        Forward_B  <= "00";
-        num_stall  <= "00";
-        if Forward_ON = '1' then
-            if ((EX_OPC = R_TYPE) or (EX_OPC = I_IMM)) and EX_MEM_rd /= "00000" and (EX_MEM_rd = rs1_addr or EX_MEM_rd = rs2_addr) then
-                Forward_A     <= "10";
-            elsif ((MEM_OPC = I_IMM) or MEM_OPC = LOAD) and MEM_WB_rd /= "00000" and (MEM_WB_rd = rs1_addr or MEM_WB_rd = rs2_addr) then                 
-                Forward_A <= "01";
-        
-            end if;                  
-        else      
-            if MEM_OPC = LOAD and MEM_WB_rd /= "00000" and ((MEM_WB_rd = rs1_addr) or (MEM_WB_rd = rs2_addr)) then  
-                num_stall <= "11";
-            elsif EX_OPC = LOAD and EX_MEM_rd /= "00000" and ((EX_MEM_rd = rs1_addr) or (EX_MEM_rd = rs2_addr)) then  
-                num_stall <= "10";
-            end if;                
-        end if;
-        -- For data hazard detection
-        EX_OPC             <= ID_OPC;
-        MEM_OPC            <= EX_OPC;
-        EX_MEM_rd          <= rd_addr;
-        MEM_WB_rd          <= EX_MEM_rd;
-    end process;
+    end process; 
     
 end behavior;

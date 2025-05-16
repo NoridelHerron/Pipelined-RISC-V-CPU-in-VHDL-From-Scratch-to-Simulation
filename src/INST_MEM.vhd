@@ -32,23 +32,20 @@ architecture behavior of INST_MEM is
     type memory_array is array (0 to 255) of std_logic_vector(31 downto 0);
     -- list of instructions
     signal rom : memory_array := (
-        0   => x"00A00093", -- addi x1, x0, 10
+       0   => x"00A00093", -- addi x1, x0, 10
         1   => x"01400113", -- addi x2, x0, 20
-        2   => x"00590193", -- addi x3, x18, 5
-        3   => x"0000a983", -- lw x19, 0(x1)
-        4   => x"00012a03", -- lw x20, 0(x2)
-        5   => x"002082B3", -- add x5, x1, x2  
-        6   => x"01400113", -- addi x2, x0, 20 
-        7   => x"00118333", -- add x6, x3, x1 
-        8   => x"0030ecb3", -- or x25, x1, x3    
-        9   => x"0022fb33", -- and x22, x5, x2
-        10  => x"0030cbb3", -- xor x23, x1, x3
-        11  => x"00309c33", -- sll x24, x1, x3 
-        12  => x"0030dcb3", -- xor x23, x1, x3  
-        13  => x"4030dd33", -- sra x26, x1, x3
-        14  => x"40308db3", -- sub x27, x1, x3 
-        15  => x"0030ae33", -- slt x28, x1, x3
-        16  => x"0030beb3", -- sltu x29, x1, x3  
+        2   => x"00590193", -- addi x3, x18, 5  
+        3   => x"01400113", -- addi x2, x0, 20 
+        4   => x"00118333", -- add x6, x3, x1 
+        5   => x"0030ecb3", -- or x25, x1, x3    
+        6   => x"0022fb33", -- and x22, x5, x2
+        7   => x"0030cbb3", -- xor x23, x1, x3
+        8   => x"00309c33", -- sll x24, x1, x3 
+        9   => x"0030dcb3", -- xor x23, x1, x3  
+        10  => x"4030dd33", -- sra x26, x1, x3
+        11  => x"40308db3", -- sub x27, x1, x3 
+        12  => x"0030ae33", -- slt x28, x1, x3
+        13  => x"0030beb3", -- sltu x29, x1, x3  
         others => x"00000013"   
     );
 

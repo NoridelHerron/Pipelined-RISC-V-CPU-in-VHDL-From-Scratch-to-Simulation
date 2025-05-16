@@ -18,7 +18,7 @@ architecture sim of tb_CPU_RISCV is
             clk                    : in std_logic;
             reset                  : in std_logic;
             -- For forwarding
-            ENABLE_FORWARDING      : in std_logic;
+           -- ENABLE_FORWARDING      : in std_logic;
             -- IF
             IF_inst_out            : out std_logic_vector(31 downto 0);
             IF_pc_out              : out std_logic_vector(31 downto 0);
@@ -63,7 +63,7 @@ architecture sim of tb_CPU_RISCV is
     constant CLK_PERIOD : time := 10 ns;
     signal clk              : std_logic := '0';
     signal reset            : std_logic := '1';
-    signal FORWARDING       : std_logic := '1';
+    --signal FORWARDING       : std_logic := '0';
     
     signal Flags            : std_logic_vector(3 downto 0);
     signal ID_EX_f3         : std_logic_vector(2 downto 0) := (others => '0');
@@ -75,27 +75,27 @@ architecture sim of tb_CPU_RISCV is
     signal EX_MEM_op        : std_logic_vector(2 downto 0) := (others => '0');       
     signal ID_EX_reg_data1  : std_logic_vector(31 downto 0) := (others => '0');
     signal ID_EX_reg_data2  : std_logic_vector(31 downto 0) := (others => '0');
-    signal ID_EX_store_rs2  : std_logic_vector(31 downto 0) := (others => '0');
     
-    signal EX_MEM_store_rs2 : std_logic_vector(31 downto 0) := (others => '0');
     signal EX_MEM_result    : std_logic_vector(31 downto 0) := (others => '0');  
     signal MEM_WB_mem       : std_logic_vector(31 downto 0) := (others => '0');    
     signal WB_ID_data       : std_logic_vector(31 downto 0) := (others => '0');
-    
-    --signal WB_pc            : std_logic_vector(31 downto 0) := (others => '0');
-    signal MEM_WB_write     : std_logic;
-    signal WB_ID_write      : std_logic := '0';  
 
     signal ID_EX_rd         : std_logic_vector(4 downto 0) := (others => '0');
     signal EX_MEM_rd        : std_logic_vector(4 downto 0) := (others => '0');  
     signal MEM_WB_rd        : std_logic_vector(4 downto 0) := (others => '0'); 
     signal WB_ID_rd         : std_logic_vector(4 downto 0) := (others => '0');  
+    
+     --signal WB_pc            : std_logic_vector(31 downto 0) := (others => '0');
+    signal MEM_WB_write     : std_logic;
+    signal WB_ID_write      : std_logic := '0';
+    signal ID_EX_store_rs2  : std_logic_vector(31 downto 0) := (others => '0');
+    signal EX_MEM_store_rs2 : std_logic_vector(31 downto 0) := (others => '0');  
 begin
     DUT: CPU_RISCV
         port map (
             clk                     => clk,
             reset                   => reset,
-            ENABLE_FORWARDING       => FORWARDING,
+            --ENABLE_FORWARDING       => FORWARDING,
             IF_inst_out             => IF_inst,
             IF_pc_out               => IF_pc,
             ID_EX_op_out            => ID_EX_op,

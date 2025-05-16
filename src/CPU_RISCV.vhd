@@ -17,7 +17,7 @@ entity CPU_RISCV is
     Port (  clk                    : in std_logic;
             reset                  : in std_logic;
             -- For forwarding
-            ENABLE_FORWARDING      : in std_logic;
+            --ENABLE_FORWARDING      : in std_logic;
 
             -- Optional output for test bench
             -- IF
@@ -69,7 +69,7 @@ architecture FLOW of CPU_RISCV is
                 clk             : in  std_logic;
                 rst             : in  std_logic;       
                 -- Enable Forwading
-                Forward_ON      : in  std_logic; 
+                --Forward_ON      : in  std_logic; 
                 -- input from IF 
                 instr_in        : in  std_logic_vector(31 downto 0);
                 -- input from WB
@@ -86,8 +86,8 @@ architecture FLOW of CPU_RISCV is
                 store_rs2       : out std_logic_vector(31 downto 0);  -- RS2 value for stores   
                 rd_out          : out std_logic_vector(4 downto 0);
                 -- For forwading
-                Forward_A       : out std_logic_vector(1 downto 0);
-                Forward_B       : out std_logic_vector(1 downto 0); 
+               -- Forward_A       : out std_logic_vector(1 downto 0);
+               -- Forward_B       : out std_logic_vector(1 downto 0); 
                 -- For inserting bubble/s or stalling   
                 num_stall       : out std_logic_vector(1 downto 0) );
     end component;
@@ -214,55 +214,25 @@ begin
             -- inputs
             clk          => clk,
             rst          => reset,
-            Forward_ON   => ENABLE_FORWARDING,
+            --Forward_ON   => ENABLE_FORWARDING,
             instr_in     => IF_instruction,                 
             data_in      => WB_ID_data,
             wb_rd        => WB_ID_rd,
             wb_reg_write => WB_ID_write,
             -- outputs
-            op           => ID_op,
-            f3           => ID_f3,
-            f7           => ID_f7,
-            reg_data1    => ID_reg_data1,
-            reg_data2    => ID_reg_data2,
-            store_rs2    => ID_store_rs2,
-            rd_out       => ID_rd,
-            Forward_A    => ForwardA,
-            Forward_B    => ForwardB,
-            num_stall    => ID_num_stall
+            op           => ID_EX_op ,
+            f3           => ID_EX_f3 ,
+            f7           => ID_EX_f7,
+            reg_data1    => ID_EX_reg_data1,
+            reg_data2    => ID_EX_reg_data2,
+            store_rs2    => ID_EX_store_rs2,
+            rd_out       => ID_EX_rd,
+          --  Forward_A    => ForwardA,
+           -- Forward_B    => ForwardB,
+            num_stall    => ID_EX_num_stall
         );
 --------------------- ID/EX STAGE ---------------------------  
-    process (clk)
-    begin      
-        if rising_edge(clk) then
-            if ENABLE_FORWARDING = '1' then
-                if ForwardA = "10" then
-                    ID_EX_reg_data1      <= EX_MEM_result;
-                elsif ForwardA = "01" or ForwardA = "11" then
-                    ID_EX_reg_data1      <= MEM_WB_mem_out;
-                else
-                    ID_EX_reg_data1      <= ID_reg_data1;
-                end if;
-                
-                if ForwardB = "10" then
-                    ID_EX_reg_data2      <= EX_MEM_result;
-                elsif ForwardB = "01" or ForwardB = "11" then
-                    ID_EX_reg_data2      <= MEM_WB_mem_out;
-                else
-                    ID_EX_reg_data2      <= ID_reg_data2;
-                end if;
-            else    
-                ID_EX_reg_data1      <= ID_reg_data1;
-                ID_EX_reg_data2      <= ID_reg_data2;
-            end if;
-            ID_EX_op             <= ID_op;
-            ID_EX_f3             <= ID_f3; 
-            ID_EX_f7             <= ID_f7;    
-            ID_EX_store_rs2      <= ID_store_rs2; 
-            ID_EX_rd             <= ID_rd;
-            ID_EX_num_stall      <= ID_num_stall;
-        end if;
-    end process;
+  
 --------------------- EX STAGE ---------------------------      
     -- Flags(3) = Z flag; Flags(2) = N flag; Flags(1) = C flag; Flags(0) = V flag
     EX_STAGE_UUT : EX_STAGE

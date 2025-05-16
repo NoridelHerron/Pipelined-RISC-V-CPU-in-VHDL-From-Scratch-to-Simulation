@@ -35,33 +35,22 @@ architecture behavior of IF_STAGE is
 begin
     
     -- PC update and stall logic
-    process(clk)
+   process(clk)
     begin
+        -- PC update process: triggered on rising edge of clock
         if rising_edge(clk) then
             if rst = '1' then
-                pc        <= (others => '0');
-                stall_cnt <= 0;
-            elsif stall_cnt > 0 then
-                stall_cnt <= stall_cnt - 1;
-            elsif num_stall_in /= "00" then
-                case num_stall_in is
-                    when "01" => stall_cnt <= 1;
-                    when "11" => stall_cnt <= 2;
-                    when "10" => stall_cnt <= 3;
-                    when others => stall_cnt <= 0;
-                end case;
+                pc <= (others => '0');
             else
+                -- increment PC by 4 (next instruction)
                 pc <= std_logic_vector(unsigned(pc) + 4);
             end if;
         end if;
     end process;
-    
 
     -- Get the instruction from the memory based on the PC
     MEM : INST_MEM port map (pc, inst);
     
-    -- Clean, separate driver
-    instr_out <= NOP when stall_cnt > 0 else inst;
-    pc_out    <= pc;
-
+    instr_out <= inst;     -- Clean, separate driver
+    pc_out <= pc;
 end behavior;
