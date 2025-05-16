@@ -23,8 +23,9 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity INST_MEM is
-    Port ( addr   : in  std_logic_vector(31 downto 0);  -- input: byte address to fetch instruction
-           instr  : out std_logic_vector(31 downto 0)); -- output: instruction at the given address
+    Port ( 
+            addr   : in  std_logic_vector(31 downto 0);  -- input: byte address to fetch instruction
+            instr  : out std_logic_vector(31 downto 0)); -- output: instruction at the given address
 end INST_MEM;
 
 architecture behavior of INST_MEM is
@@ -32,20 +33,11 @@ architecture behavior of INST_MEM is
     type memory_array is array (0 to 255) of std_logic_vector(31 downto 0);
     -- list of instructions
     signal rom : memory_array := (
-       0   => x"00A00093", -- addi x1, x0, 10
-        1   => x"01400113", -- addi x2, x0, 20
-        2   => x"00590193", -- addi x3, x18, 5  
-        3   => x"01400113", -- addi x2, x0, 20 
-        4   => x"00118333", -- add x6, x3, x1 
-        5   => x"0030ecb3", -- or x25, x1, x3    
-        6   => x"0022fb33", -- and x22, x5, x2
-        7   => x"0030cbb3", -- xor x23, x1, x3
-        8   => x"00309c33", -- sll x24, x1, x3 
-        9   => x"0030dcb3", -- xor x23, x1, x3  
-        10  => x"4030dd33", -- sra x26, x1, x3
-        11  => x"40308db3", -- sub x27, x1, x3 
-        12  => x"0030ae33", -- slt x28, x1, x3
-        13  => x"0030beb3", -- sltu x29, x1, x3  
+        0   => x"00A00093", -- addi x1, x0, 10
+        1   => x"01400113", -- addi x2, x0, 20   
+        2   => x"00118333", -- add x6, x3, x1 
+        3   => x"002082B3", -- add x5, x1, x2   
+
         others => x"00000013"   
     );
 

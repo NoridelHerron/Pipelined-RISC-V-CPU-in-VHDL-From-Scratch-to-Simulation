@@ -18,7 +18,7 @@ architecture sim of tb_CPU_RISCV is
             clk                    : in std_logic;
             reset                  : in std_logic;
             -- For forwarding
-           -- ENABLE_FORWARDING      : in std_logic;
+            ENABLE_FORWARDING      : in std_logic;
             -- IF
             IF_inst_out            : out std_logic_vector(31 downto 0);
             IF_pc_out              : out std_logic_vector(31 downto 0);
@@ -30,7 +30,8 @@ architecture sim of tb_CPU_RISCV is
             ID_EX_reg_data2_out    : out std_logic_vector(31 downto 0);
             ID_EX_store_rs2_out    : out std_logic_vector(31 downto 0);
             ID_EX_rd_out           : out std_logic_vector(4 downto 0);
-            --ID_pc_out              : out std_logic_vector(31 downto 0);
+            rs1                    : out std_logic_vector(4 downto 0);  
+            rs2                    : out std_logic_vector(4 downto 0);  
     
             -- EX
             EX_MEM_result_out      : out std_logic_vector(31 downto 0);
@@ -50,20 +51,20 @@ architecture sim of tb_CPU_RISCV is
             -- WB
             WB_ID_data_out         : out std_logic_vector(31 downto 0);
             WB_ID_rd_out           : out std_logic_vector(4 downto 0);
-            WB_ID_write_out        : out std_logic
-            --WB_pc_out              : out std_logic_vector(31 downto 0);
-            
-            --Forward_A              : out std_logic_vector(1 downto 0);
-            --Forward_B              : out std_logic_vector(1 downto 0);                    
-            --num_stall_out          : out  std_logic_vector(1 downto 0)
-            --bubble_out             : out  std_logic    
+            WB_ID_write_out        : out std_logic;
+            num_stall              : out std_logic_vector(1 downto 0);
+            ForwardA_out    : out std_logic_vector(1 downto 0);
+            ForwardB_out    : out std_logic_vector(1 downto 0)
         );
     end component;
 
     constant CLK_PERIOD : time := 10 ns;
     signal clk              : std_logic := '0';
     signal reset            : std_logic := '1';
-    --signal FORWARDING       : std_logic := '0';
+    signal FORWARDING       : std_logic := '1';
+    signal stall_count      : std_logic_vector(1 downto 0);
+    signal FORWARDA      : std_logic_vector(1 downto 0);
+    signal FORWARDB      : std_logic_vector(1 downto 0);
     
     signal Flags            : std_logic_vector(3 downto 0);
     signal ID_EX_f3         : std_logic_vector(2 downto 0) := (others => '0');
@@ -80,6 +81,8 @@ architecture sim of tb_CPU_RISCV is
     signal MEM_WB_mem       : std_logic_vector(31 downto 0) := (others => '0');    
     signal WB_ID_data       : std_logic_vector(31 downto 0) := (others => '0');
 
+    signal rs1              : std_logic_vector(4 downto 0);  
+    signal rs2              : std_logic_vector(4 downto 0);  
     signal ID_EX_rd         : std_logic_vector(4 downto 0) := (others => '0');
     signal EX_MEM_rd        : std_logic_vector(4 downto 0) := (others => '0');  
     signal MEM_WB_rd        : std_logic_vector(4 downto 0) := (others => '0'); 
@@ -95,7 +98,7 @@ begin
         port map (
             clk                     => clk,
             reset                   => reset,
-            --ENABLE_FORWARDING       => FORWARDING,
+            ENABLE_FORWARDING       => FORWARDING,
             IF_inst_out             => IF_inst,
             IF_pc_out               => IF_pc,
             ID_EX_op_out            => ID_EX_op,
@@ -105,7 +108,8 @@ begin
             ID_EX_reg_data2_out     => ID_EX_reg_data2,
             ID_EX_store_rs2_out     => ID_EX_store_rs2,
             ID_EX_rd_out            => ID_EX_rd,
-            --ID_pc_out               => ID_pc,
+            rs1                     => rs1,
+            rs2                     => rs2,
             EX_MEM_result_out       => EX_MEM_result,
             Flags_out               => Flags,
             EX_MEM_op_out           => EX_MEM_op,
@@ -118,7 +122,10 @@ begin
             --MEM_pc_out              => MEM_pc,
             WB_ID_data_out          => WB_ID_data,
             WB_ID_rd_out            => WB_ID_rd,
-            WB_ID_write_out         => WB_ID_write 
+            WB_ID_write_out         => WB_ID_write,
+            num_stall               => stall_count,
+            ForwardA_out   => FORWARDA,
+            ForwardB_out    => FORWARDB
         );
 
     clk_process : process

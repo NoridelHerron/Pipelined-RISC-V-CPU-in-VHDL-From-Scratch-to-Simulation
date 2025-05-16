@@ -9,14 +9,14 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity IF_STAGE is
-    Port ( -- Inputs
-           clk, rst         : in  std_logic;      
-           --bubble_in        : in  std_logic;                       
-           num_stall_in     : in  std_logic_vector(1 downto 0); 
-           -- Outputs
-           instr_out        : out std_logic_vector(31 downto 0);   
-           pc_out           : out std_logic_vector(31 downto 0)  
-         ); 
+    Port ( -- inputs 
+               clk, rst         : in  std_logic;                        
+               num_stall_in     : in  std_logic_vector(1 downto 0); 
+               -- output instr_out- 32-bit instruction forwarded to Decode stage   
+               num_stall_out    : out  std_logic_vector(1 downto 0); 
+               instr_out        : out std_logic_vector(31 downto 0);   
+               -- good for debugging, but this is optional
+               pc_out           : out std_logic_vector(31 downto 0)); 
 end IF_STAGE;
 
 architecture behavior of IF_STAGE is
@@ -53,4 +53,5 @@ begin
     
     instr_out <= inst;     -- Clean, separate driver
     pc_out <= pc;
+    num_stall_out <= num_stall_in;
 end behavior;

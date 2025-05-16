@@ -27,7 +27,8 @@ entity MEM_STAGE is
             write_data    : in  std_logic_vector(31 downto 0); -- From EX stage (store)
             op_in         : in  std_logic_vector(2 downto 0);  -- Control signal
             rd_in         : in  std_logic_vector(4 downto 0);  -- Destination register
-            -- Outputs to MEM/WB REGISTERs
+            -- Outputs to MEM/WB REGISTERs     
+            
             mem_out       : out std_logic_vector(31 downto 0); -- Load data or passthrough ALU result
             reg_write_out : out std_logic;                     -- Register write enable
             rd_out        : out std_logic_vector(4 downto 0));   -- Pass-through
@@ -81,4 +82,5 @@ begin
     reg_write_out <= '1' when op_in = "001" or op_in = "010" else '0';
     -- Pass destination register
     rd_out      <= rd_in;
+    
 end behavior;
