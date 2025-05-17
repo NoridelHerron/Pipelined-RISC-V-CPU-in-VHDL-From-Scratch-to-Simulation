@@ -10,11 +10,11 @@ use IEEE.NUMERIC_STD.ALL;
 -- 32-bit ripple-carry adder
 entity adder_32bits is
     Port (
-        A, B           : in std_logic_vector (31 downto 0);
-        Ci             : in std_logic;
-        Sum            : out std_logic_vector (31 downto 0);
-        Z_flag, V_flag, C_flag, N_flag : out std_logic
-    ); 
+            A, B           : in std_logic_vector (31 downto 0);
+            Ci             : in std_logic;
+            Sum            : out std_logic_vector (31 downto 0);
+            Z_flag, V_flag, C_flag, N_flag : out std_logic
+        ); 
 end adder_32bits;
 
 architecture Equation of adder_32bits is

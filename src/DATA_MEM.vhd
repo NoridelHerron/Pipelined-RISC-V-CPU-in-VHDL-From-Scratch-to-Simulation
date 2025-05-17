@@ -28,12 +28,13 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity DATA_MEM is
-    Port(clk        : in  std_logic; -- Clock input, used to trigger synchronous writes
-         mem_read   : in  std_logic; -- Control signal - if '1', read from memory
-         mem_write  : in  std_logic; -- Control signal - if '1', write to memory
-         address    : in  std_logic_vector(9 downto 0); -- 10-bit address (1024 words)
-         write_data : in  std_logic_vector(31 downto 0); -- 32-bit input - the data to write to memory
-         read_data  : out std_logic_vector(31 downto 0) --  32-bit output - the data being read
+    Port(
+          clk        : in  std_logic; -- Clock input, used to trigger synchronous writes
+          mem_read   : in  std_logic; -- Control signal - if '1', read from memory
+          mem_write  : in  std_logic; -- Control signal - if '1', write to memory
+          address    : in  std_logic_vector(9 downto 0); -- 10-bit address (1024 words)
+          write_data : in  std_logic_vector(31 downto 0); -- 32-bit input - the data to write to memory
+          read_data  : out std_logic_vector(31 downto 0) --  32-bit output - the data being read
          );
 end DATA_MEM;
 

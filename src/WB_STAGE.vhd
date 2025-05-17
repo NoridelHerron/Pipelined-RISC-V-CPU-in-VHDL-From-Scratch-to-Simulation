@@ -13,10 +13,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity WB_STAGE is
-    Port (  
-            clk             : in  std_logic;
-            rst             : in  std_logic;
-            -- inputs from MEM/WB REGISTER
+    Port (  -- inputs from MEM/WB REGISTER
             data_in       : in  std_logic_vector(31 downto 0);     -- Final result from MEM_STAGE
             rd_in         : in  std_logic_vector(4 downto 0);      -- Destination register
             reg_write_in  : in  std_logic;                         -- Write enable signal from MEM_STAGE
@@ -28,17 +25,8 @@ end WB_STAGE;
 
 architecture behavior of WB_STAGE is
 begin
-    process(clk, rst)
-    begin
-        if rst = '1' then
-            data_out        <= (others => '0');   
-            reg_write_out   <= '0';
-            rd_out          <= (others => '0');   
-           
-        elsif rising_edge(clk) then
-            data_out         <= data_in;
-            reg_write_out   <= reg_write_in;
-            rd_out          <= rd_in;
-        end if;
-    end process; 
+    -- Pass values straight through
+    data_out      <= data_in;
+    rd_out        <= rd_in;
+    reg_write_out <= reg_write_in;
 end behavior;

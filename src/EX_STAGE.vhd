@@ -10,48 +10,52 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity EX_STAGE is
-    Port (
-            clk           : in  std_logic;
-            rst           : in  std_logic;
+    Port (  -- Inputs
+           clk           : in  std_logic;
+           rst           : in  std_logic;
+           -- from the ID stage (ID/EX register)
+           reg_data1_in  : in  std_logic_vector(31 downto 0);
+           reg_data2_in  : in  std_logic_vector(31 downto 0);
+           op_in         : in  std_logic_vector(2 downto 0);
+           f3_in         : in  std_logic_vector(2 downto 0);
+           f7_in         : in  std_logic_vector(6 downto 0); 
+           rd_in         : in  std_logic_vector(4 downto 0);
+           store_rs2_in  : in  std_logic_vector(31 downto 0);
             
-            reg_data1_in  : in  std_logic_vector(31 downto 0);
-            reg_data2_in  : in  std_logic_vector(31 downto 0);
-            op_in         : in  std_logic_vector(2 downto 0);
-            f3_in         : in  std_logic_vector(2 downto 0);
-            f7_in         : in  std_logic_vector(6 downto 0); 
-            rd_in         : in  std_logic_vector(4 downto 0);
-            store_rs2_in  : in  std_logic_vector(31 downto 0);
-            
-            -- Outputs to MEM stage    
-            result_out    : out std_logic_vector(31 downto 0);
-            Z_flag_out    : out std_logic;
-            V_flag_out    : out std_logic;
-            C_flag_out    : out std_logic;
-            N_flag_out    : out std_logic;
-            write_data_out: out std_logic_vector(31 downto 0); -- Pass reg_data2 for store instructions
+           -- Outputs to MEM stage    
+           result_out    : out std_logic_vector(31 downto 0);
+           Z_flag_out    : out std_logic;
+           V_flag_out    : out std_logic;
+           C_flag_out    : out std_logic;
+           N_flag_out    : out std_logic;
+           
+           -- Pass reg_data2 for store instructions
+           write_data_out: out std_logic_vector(31 downto 0); 
     
-            -- pass through the next stage
-            op_out        : out std_logic_vector(2 downto 0);
-            rd_out        : out std_logic_vector(4 downto 0) );
+           -- pass through the next stage
+           op_out        : out std_logic_vector(2 downto 0);
+           rd_out        : out std_logic_vector(4 downto 0) 
+         );
 end EX_STAGE;
 
 architecture behavior of EX_STAGE is
 
     component ALU
-        Port (
-            A, B       : in std_logic_vector(31 downto 0);
-            Ci_Bi      : in std_logic;
-            f3         : in std_logic_vector(2 downto 0);
-            f7         : in std_logic_vector(6 downto 0);
-            result     : out std_logic_vector(31 downto 0);
-            Z_flag     : out std_logic;
-            V_flag     : out std_logic;
-            C_flag     : out std_logic;
-            N_flag     : out std_logic
-        );
+        Port ( -- inputs
+               A, B       : in std_logic_vector(31 downto 0);
+               Ci_Bi      : in std_logic;
+               f3         : in std_logic_vector(2 downto 0);
+               f7         : in std_logic_vector(6 downto 0);
+               -- outputs
+               result     : out std_logic_vector(31 downto 0);
+               Z_flag     : out std_logic;
+               V_flag     : out std_logic;
+               C_flag     : out std_logic;
+               N_flag     : out std_logic
+            );
     end component;
 
-    -- ALU wires
+    -- EX/MEM register
     signal alu_result     : std_logic_vector(31 downto 0);
     signal Z_flag_wire    : std_logic;
     signal V_flag_wire    : std_logic;
@@ -62,9 +66,21 @@ architecture behavior of EX_STAGE is
 begin
 
     -- ALU instance
-    alu_inst : ALU port map (reg_data1_in, reg_data2_in, Ci_Bi, f3_in, f7_in, 
-                 alu_result, Z_flag_wire, V_flag_wire, C_flag_wire, N_flag_wire);
-
+    alu_inst : ALU 
+        port map (
+                   A        => reg_data1_in,
+                   B        => reg_data2_in,
+                   Ci_Bi    => Ci_Bi,
+                   f3       => f3_in,
+                   f7       => f7_in, 
+                   -- outputs
+                   result   => alu_result,
+                   Z_flag   => Z_flag_wire,
+                   V_flag   => V_flag_wire,
+                   C_flag   => C_flag_wire,
+                   N_flag   => N_flag_wire
+                 );
+            
     -- Pipeline register for EX/MEM
     process(clk, rst)
     begin

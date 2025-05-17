@@ -31,8 +31,10 @@ architecture sim of tb_CPU_RISCV is
             ID_EX_reg_data1_out    : out std_logic_vector(31 downto 0);
             ID_EX_reg_data2_out    : out std_logic_vector(31 downto 0);
             ID_EX_store_rs2_out    : out std_logic_vector(31 downto 0);
-            ID_EX_rd_out           : out std_logic_vector(4 downto 0);  
-
+            ID_EX_rd_out           : out std_logic_vector(4 downto 0);
+            rs1                    : out std_logic_vector(4 downto 0);  
+            rs2                    : out std_logic_vector(4 downto 0);  
+ 
             -- EX
             EX_MEM_result_out      : out std_logic_vector(31 downto 0);
             -- Flags(3) = Z flag; Flags(2) = N flag; Flags(1) = C flag; Flags(0) = V flag
@@ -49,13 +51,26 @@ architecture sim of tb_CPU_RISCV is
             -- WB
             WB_ID_data_out         : out std_logic_vector(31 downto 0);
             WB_ID_rd_out           : out std_logic_vector(4 downto 0);
-            WB_ID_write_out        : out std_logic );
+            WB_ID_write_out        : out std_logic;
+            
+            -- For hazard 
+            num_stall              : out std_logic_vector(1 downto 0);
+            ForwardA_out    : out std_logic_vector(1 downto 0);
+            ForwardB_out    : out std_logic_vector(1 downto 0)
+        );
+
     end component;
 
     constant CLK_PERIOD : time := 10 ns;
     signal clk              : std_logic := '0';
     signal reset            : std_logic := '1';
-    signal FORWARDING       : std_logic := '1';
+    
+    --------------- For Hazards --------------------------------------------
+    signal FORWARDING       : std_logic := '0';
+    signal stall_count      : std_logic_vector(1 downto 0);
+    signal FORWARDA      : std_logic_vector(1 downto 0);
+    signal FORWARDB      : std_logic_vector(1 downto 0);
+    
     
     signal Flags            : std_logic_vector(3 downto 0);
     signal ID_EX_f3         : std_logic_vector(2 downto 0) := (others => '0');
@@ -67,29 +82,33 @@ architecture sim of tb_CPU_RISCV is
     signal EX_MEM_op        : std_logic_vector(2 downto 0) := (others => '0');       
     signal ID_EX_reg_data1  : std_logic_vector(31 downto 0) := (others => '0');
     signal ID_EX_reg_data2  : std_logic_vector(31 downto 0) := (others => '0');
-    signal ID_EX_store_rs2  : std_logic_vector(31 downto 0) := (others => '0');
     
-    signal EX_MEM_store_rs2 : std_logic_vector(31 downto 0) := (others => '0');
     signal EX_MEM_result    : std_logic_vector(31 downto 0) := (others => '0');  
     signal MEM_WB_mem       : std_logic_vector(31 downto 0) := (others => '0');    
     signal WB_ID_data       : std_logic_vector(31 downto 0) := (others => '0');
-    
-    --signal WB_pc            : std_logic_vector(31 downto 0) := (others => '0');
-    signal MEM_WB_write     : std_logic;
-    signal WB_ID_write      : std_logic := '0';  
 
+    signal rs1              : std_logic_vector(4 downto 0);  
+    signal rs2              : std_logic_vector(4 downto 0);  
     signal ID_EX_rd         : std_logic_vector(4 downto 0) := (others => '0');
     signal EX_MEM_rd        : std_logic_vector(4 downto 0) := (others => '0');  
     signal MEM_WB_rd        : std_logic_vector(4 downto 0) := (others => '0'); 
     signal WB_ID_rd         : std_logic_vector(4 downto 0) := (others => '0');  
+    
+     --signal WB_pc            : std_logic_vector(31 downto 0) := (others => '0');
+    signal MEM_WB_write     : std_logic;
+    signal WB_ID_write      : std_logic := '0';
+    signal ID_EX_store_rs2  : std_logic_vector(31 downto 0) := (others => '0');
+    signal EX_MEM_store_rs2 : std_logic_vector(31 downto 0) := (others => '0');  
 begin
     DUT: CPU_RISCV
         port map (
             clk                     => clk,
             reset                   => reset,
             ENABLE_FORWARDING       => FORWARDING,
+            -- IF
             IF_inst_out             => IF_inst,
             IF_pc_out               => IF_pc,
+            -- ID
             ID_EX_op_out            => ID_EX_op,
             ID_EX_f3_out            => ID_EX_f3,
             ID_EX_f7_out            => ID_EX_f7,
@@ -97,20 +116,25 @@ begin
             ID_EX_reg_data2_out     => ID_EX_reg_data2,
             ID_EX_store_rs2_out     => ID_EX_store_rs2,
             ID_EX_rd_out            => ID_EX_rd,
-            --ID_pc_out               => ID_pc,
+            rs1                     => rs1,
+            rs2                     => rs2,
+            -- EX
             EX_MEM_result_out       => EX_MEM_result,
             Flags_out               => Flags,
             EX_MEM_op_out           => EX_MEM_op,
             EX_MEM_rd_out           => EX_MEM_rd,
             EX_MEM_store_rs2_out    => EX_MEM_store_rs2,
-            --EX_pc_out               => EX_pc,
+            -- MEM
             MEM_WB_mem_out_out      => MEM_WB_mem,
             MEM_WB_write_out        => MEM_WB_write,
             MEM_WB_rd_out           => MEM_WB_rd,
-            --MEM_pc_out              => MEM_pc,
+            -- WB
             WB_ID_data_out          => WB_ID_data,
             WB_ID_rd_out            => WB_ID_rd,
-            WB_ID_write_out         => WB_ID_write 
+            WB_ID_write_out         => WB_ID_write,
+            num_stall               => stall_count,
+            ForwardA_out            => FORWARDA,
+            ForwardB_out            => FORWARDB
         );
 
     clk_process : process

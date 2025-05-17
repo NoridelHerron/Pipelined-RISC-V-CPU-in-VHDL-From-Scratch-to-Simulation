@@ -9,39 +9,45 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity ALU is
-    Port (
-        A, B       : in std_logic_vector (31 downto 0);  -- 32-bit inputs
-        Ci_Bi      : in std_logic;                      -- 1-bit carry/borrow input
-        f3         : in std_logic_vector (2 downto 0);  -- 3-bit ALU opcode (funct3)
-        f7         : in std_logic_vector (6 downto 0);  -- 7-bit extended opcode (funct7)
-        result     : out std_logic_vector (31 downto 0);-- 32-bit result
-        Z_flag, V_flag, C_flag, N_flag : out std_logic  -- Flags
-    );
+    Port ( -- inputs
+           A, B       : in std_logic_vector (31 downto 0);  -- 32-bit inputs
+           Ci_Bi      : in std_logic;                       -- 1-bit carry/borrow input 
+           f3         : in std_logic_vector (2 downto 0);   -- 3-bit ALU opcode (funct3)
+           f7         : in std_logic_vector (6 downto 0);   -- 7-bit extended opcode (funct7)
+           -- outputs
+           result     : out std_logic_vector (31 downto 0);  -- 32-bit result
+           Z_flag, V_flag, C_flag, N_flag : out std_logic    -- Flags
+        );
 end ALU;
 
 architecture operations of ALU is
 
     -- Adder
     component adder_32bits
-        Port (A,B : in std_logic_vector(31 downto 0);           -- 32-bits inputs
-              Ci  : in std_logic;                              -- 1-bit input
-              Sum : out std_logic_vector(31 downto 0);          -- 32-bits outputs
-              Z_flag, V_flag, C_flag, N_flag : out std_logic); -- 1-bit output
+        Port ( -- inputs
+               A,B  : in std_logic_vector(31 downto 0);           -- 32-bits inputs
+               Ci   : in std_logic;                               -- 1-bit input
+               -- outputs
+               Sum  : out std_logic_vector(31 downto 0);          -- 32-bits outputs
+               Z_flag, V_flag, C_flag, N_flag : out std_logic   -- 1-bit output
+              );
     end component;
     
     -- Subtractor
     component sub_32bits
-        Port (A,B : in std_logic_vector(31 downto 0);            -- 32-bits inputs
-              Bi  : in std_logic;                               -- 1-bit input
-              difference : out std_logic_vector(31 downto 0);    -- 32-bits outputs
-              Z_flag, V_flag, C_flag, N_flag : out std_logic);  -- 1-bit output
+        Port ( -- inputs
+               A,B : in std_logic_vector(31 downto 0);             -- 32-bits inputs
+               Bi  : in std_logic;                                 -- 1-bit input
+               -- outputs
+               difference : out std_logic_vector(31 downto 0);     -- 32-bits outputs
+               Z_flag, V_flag, C_flag, N_flag : out std_logic);    -- 1-bit output
     end component;
     
     -- Internal signals
-    signal func_3 : integer range 0 to 7;
-    signal func_7 : integer range 0 to 32;
-    signal Z, V, C, N, Za, Va, Ca, Na, Zs, Vs, Cs, Ns : std_logic;
-    signal res_add, res_sub, res_temp : std_logic_vector(31 downto 0);
+    signal func_3                            : integer range 0 to 7;
+    signal func_7                            : integer range 0 to 32;
+    signal Za, Va, Ca, Na, Zs, Vs, Cs, Ns    : std_logic; -- prevents multiple drivers
+    signal res_add, res_sub, res_temp        : std_logic_vector(31 downto 0);
 
 begin
     -- Instantiate adder and subtractor
@@ -49,12 +55,13 @@ begin
     Sub: sub_32bits port map (A, B, Ci_Bi, res_sub, Zs, Vs, Cs, Ns);
     
     -- Convert opcodes to integers
-    func_3 <= TO_INTEGER(unsigned(f3));
+    -- Optional we can directly use the bits for case statement
+    -- For me, this looks cleaner
+    func_3 <= TO_INTEGER(unsigned(f3)); 
     func_7 <= TO_INTEGER(unsigned(f7));
 
-
     -- Main datapath process
-    process (func_3, func_7, A, B, res_add, res_sub)
+    process (func_3, func_7, A, B, res_add, res_sub, Za, Va, Ca, Na, Zs, Vs, Cs, Ns)
     begin
         case func_3 is
             when 0 =>  -- ADD/SUB
