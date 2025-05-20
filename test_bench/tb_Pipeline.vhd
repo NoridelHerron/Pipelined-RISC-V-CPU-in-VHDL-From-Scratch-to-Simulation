@@ -112,6 +112,45 @@ begin
         wait;
     end process;
     
+    process(FORWARDING)
+    variable source_str : string(1 to 6);
+    variable inst_hex   : string(1 to 10);
+    begin
+        if FORWARDING = '1' and ID_EX_inst /= x"FFFFFFFF" and ID_EX_inst /= x"00000013" then
+            inst_hex := "0x" & to_hexstring(ID_EX_inst);
+    
+            if FORWARDA /= "00" then
+                if FORWARDA = "10" then
+                    source_str := "EX/MEM";
+                elsif FORWARDA = "01" then
+                    source_str := "MEM/WB";
+                else
+                    source_str := "UNKWN ";
+                end if;
+                report "Hazard on rs1: forwarding from " & source_str &
+                       ", rs1 = " & integer'image(to_integer(unsigned(rs1))) &
+                       ", instr = " & inst_hex
+                       severity note;
+            end if;
+    
+            if FORWARDB /= "00" then
+                if FORWARDB = "10" then
+                    source_str := "EX/MEM";
+                elsif FORWARDB = "01" then
+                    source_str := "MEM/WB";
+                else
+                    source_str := "UNKWN ";
+                end if;
+                report "Hazard on rs2: forwarding from " & source_str &
+                       ", rs2 = " & integer'image(to_integer(unsigned(rs2))) &
+                       ", instr = " & inst_hex
+                       severity note;
+            end if;
+        end if;
+    end process;
+
+
+
     end_simulation : process
     begin
         wait for 5000 ns;
