@@ -30,7 +30,7 @@ entity INST_MEM is
           ); -- output: instruction at the given address
 end INST_MEM;
 
-architecture behavior of INST_MEM is
+architecture read_only of INST_MEM is
 
     type memory_array is array (0 to 255) of std_logic_vector(31 downto 0);
     -- list of instructions in the memory
@@ -46,4 +46,4 @@ architecture behavior of INST_MEM is
 begin
     -- Fetch instruction using word-aligned address (addr / 4)
     instr <= rom(to_integer(unsigned(addr(9 downto 2))));
-end behavior;
+end read_only;
