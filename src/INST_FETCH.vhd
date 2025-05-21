@@ -7,14 +7,15 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use work.Pipeline_Types.all;
 
 entity IF_STAGE is
-
+    Generic( DATA_WIDTH  : natural    := DATA_WIDTH);
     Port ( --inputs
            clk, rst         : in  std_logic;                           
            -- outputs
-           instr_out        : out std_logic_vector(31 downto 0);  -- Instruction to be send for decoder
-           pc_out           : out std_logic_vector(31 downto 0)   -- good for debugging, but this is optional
+           instr_out        : out std_logic_vector(DATA_WIDTH - 1 downto 0);  -- Instruction to be send for decoder
+           pc_out           : out std_logic_vector(DATA_WIDTH - 1 downto 0)   -- good for debugging, but this is optional
          ); 
 
 end IF_STAGE;
@@ -22,8 +23,8 @@ end IF_STAGE;
 architecture behavior of IF_STAGE is
 
     -- we need a stable signal to hold the instruction before it gets send out
-    signal pc    : std_logic_vector(31 downto 0) := (others => '0');
-    signal inst  : std_logic_vector(31 downto 0) := (others => '0');
+    signal pc    : std_logic_vector(DATA_WIDTH - 1 downto 0) := (others => '0');
+    signal inst  : std_logic_vector(DATA_WIDTH - 1 downto 0) := (others => '0');
     
     begin
     -- PC update and stall logic

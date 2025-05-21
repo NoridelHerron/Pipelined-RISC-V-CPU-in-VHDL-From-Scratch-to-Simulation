@@ -6,13 +6,15 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use work.Pipeline_Types.all;
 
 -- 32-bit ripple-carry adder
 entity adder_32bits is
+    Generic( DATA_WIDTH     : natural    := DATA_WIDTH );
     Port (
-            A, B           : in std_logic_vector (31 downto 0);
+            A, B           : in std_logic_vector (DATA_WIDTH - 1 downto 0);
             Ci             : in std_logic;
-            Sum            : out std_logic_vector (31 downto 0);
+            Sum            : out std_logic_vector (DATA_WIDTH - 1 downto 0);
             Z_flag, V_flag, C_flag, N_flag : out std_logic
         ); 
 end adder_32bits;
@@ -28,8 +30,8 @@ architecture Equation of adder_32bits is
 
     -- Internal signals
     signal Co : std_logic;
-    signal C  : std_logic_vector (31 downto 1);
-    signal S  : std_logic_vector (31 downto 0);
+    signal C  : std_logic_vector (DATA_WIDTH - 1 downto 1);
+    signal S  : std_logic_vector (DATA_WIDTH - 1 downto 0);
 
 begin
     -- Instantiate FullAdders for 32-bit addition
@@ -55,14 +57,14 @@ begin
 
     -- Last Full Adder (bit 31) outputs to Co
     FA31: FullAdder port map (
-        A => A(31),
-        B => B(31),
-        Ci => C(31),
+        A => A(DATA_WIDTH - 1),
+        B => B(DATA_WIDTH - 1),
+        Ci => C(DATA_WIDTH - 1),
         Co => Co,
-        S => S(31)
+        S => S(DATA_WIDTH - 1)
     );
 
-    process(S, A(31), B(31), Co)
+    process(S, A(DATA_WIDTH - 1), B(DATA_WIDTH - 1), Co)
     begin
         Sum <= S;
 
@@ -74,7 +76,7 @@ begin
         end if;
 
         -- Overflow flag for addition
-        if ((A(31) = B(31)) and (S(31) /= A(31))) then
+        if ((A(DATA_WIDTH - 1) = B(DATA_WIDTH - 1)) and (S(DATA_WIDTH - 1) /= A(DATA_WIDTH - 1))) then
             V_flag <= '1';
         else
             V_flag <= '0';
@@ -84,7 +86,7 @@ begin
         C_flag <= Co;
 
         -- Negative flag
-        N_flag <= S(31);
+        N_flag <= S(DATA_WIDTH - 1);
     end process;
 
 end Equation;

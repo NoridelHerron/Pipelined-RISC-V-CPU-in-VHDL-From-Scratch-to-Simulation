@@ -14,6 +14,8 @@ package Pipeline_Types is
     constant LOAD   : std_logic_vector(6 downto 0) := "0000011";
     constant S_TYPE : std_logic_vector(6 downto 0) := "0100011";
     
+    constant ENABLE_FORWARDING : boolean := true;
+    
     -- You can also define constants 
     constant DATA_WIDTH     : integer := 32;
     constant REG_ADDR_WIDTH : integer := 5;
@@ -21,6 +23,10 @@ package Pipeline_Types is
     constant FUNCT7_WIDTH   : integer := 7;
     constant OPCODE_WIDTH   : integer := 7;
     constant FLAG_WIDTH     : integer := 4;
+    constant DEPTH          : integer := 1024;
+    constant LOG2DEPTH      : integer := 10;
+    constant DEPTH_USE      : integer := 1024;
+    constant IMM_WIDTH      : integer := 12;
     
     -- Forwarding control type
     type ForwardingType is (
@@ -28,11 +34,11 @@ package Pipeline_Types is
         FORWARD_EX_MEM,  -- "10"
         FORWARD_MEM_WB   -- "01"
         );   
-    
+        
     type INSERT_stall is record
         stall       : std_logic_vector(1 downto 0);      -- instructions
     end record;
-
+    
     type PipelineStages_Inst_PC is record
         instr       : std_logic_vector(DATA_WIDTH-1 downto 0);      -- instructions
         pc          : std_logic_vector(DATA_WIDTH-1 downto 0);      -- program counter
@@ -115,6 +121,6 @@ package Pipeline_Types is
     constant EMPTY_INSERT_stall : INSERT_stall := (
         stall       => (others => '0')
     );
- 
+    
 end package;
 

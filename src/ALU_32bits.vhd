@@ -7,15 +7,23 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use work.Pipeline_Types.all;
 
 entity ALU is
+    Generic( REG_ADDR_WIDTH : natural    := REG_ADDR_WIDTH;
+             DATA_WIDTH     : natural    := DATA_WIDTH;
+			 F7_WIDTH       : natural    := FUNCT7_WIDTH;
+             F3_WIDTH       : natural    := FUNCT3_WIDTH;
+			 OP_WIDTH       : natural    := OPCODE_WIDTH;
+			 IMM_WIDTH      : natural    := IMM_WIDTH
+			);
     Port ( -- inputs
-           A, B       : in std_logic_vector (31 downto 0);  -- 32-bit inputs
+           A, B       : in std_logic_vector (DATA_WIDTH - 1 downto 0);  -- 32-bit inputs
            Ci_Bi      : in std_logic;                       -- 1-bit carry/borrow input 
-           f3         : in std_logic_vector (2 downto 0);   -- 3-bit ALU opcode (funct3)
-           f7         : in std_logic_vector (6 downto 0);   -- 7-bit extended opcode (funct7)
+           f3         : in std_logic_vector (F3_WIDTH - 1 downto 0);   -- 3-bit ALU opcode (funct3)
+           f7         : in std_logic_vector (F7_WIDTH - 1 downto 0);   -- 7-bit extended opcode (funct7)
            -- outputs
-           result     : out std_logic_vector (31 downto 0);  -- 32-bit result
+           result     : out std_logic_vector (DATA_WIDTH - 1 downto 0);  -- 32-bit result
            Z_flag, V_flag, C_flag, N_flag : out std_logic    -- Flags
         );
 end ALU;
@@ -25,10 +33,10 @@ architecture operations of ALU is
     -- Adder
     component adder_32bits
         Port ( -- inputs
-               A,B  : in std_logic_vector(31 downto 0);           -- 32-bits inputs
+               A,B  : in std_logic_vector(DATA_WIDTH - 1 downto 0);           -- 32-bits inputs
                Ci   : in std_logic;                               -- 1-bit input
                -- outputs
-               Sum  : out std_logic_vector(31 downto 0);          -- 32-bits outputs
+               Sum  : out std_logic_vector(DATA_WIDTH - 1 downto 0);          -- 32-bits outputs
                Z_flag, V_flag, C_flag, N_flag : out std_logic   -- 1-bit output
               );
     end component;
@@ -36,10 +44,10 @@ architecture operations of ALU is
     -- Subtractor
     component sub_32bits
         Port ( -- inputs
-               A,B : in std_logic_vector(31 downto 0);             -- 32-bits inputs
+               A,B : in std_logic_vector(DATA_WIDTH - 1 downto 0);             -- 32-bits inputs
                Bi  : in std_logic;                                 -- 1-bit input
                -- outputs
-               difference : out std_logic_vector(31 downto 0);     -- 32-bits outputs
+               difference : out std_logic_vector(DATA_WIDTH - 1 downto 0);     -- 32-bits outputs
                Z_flag, V_flag, C_flag, N_flag : out std_logic);    -- 1-bit output
     end component;
     
@@ -47,12 +55,30 @@ architecture operations of ALU is
     signal func_3                            : integer range 0 to 7;
     signal func_7                            : integer range 0 to 32;
     signal Za, Va, Ca, Na, Zs, Vs, Cs, Ns    : std_logic; -- prevents multiple drivers
-    signal res_add, res_sub, res_temp        : std_logic_vector(31 downto 0);
+    signal res_add, res_sub, res_temp        : std_logic_vector(DATA_WIDTH - 1 downto 0);
 
 begin
     -- Instantiate adder and subtractor
-    Add: adder_32bits port map (A, B, Ci_Bi, res_add, Za, Va, Ca, Na);
-    Sub: sub_32bits port map (A, B, Ci_Bi, res_sub, Zs, Vs, Cs, Ns);
+    Add: adder_32bits port map (
+            A           => A, 
+            B           => B, 
+            Ci          => Ci_Bi, 
+            Sum         => res_add, 
+            Z_flag      => Za, 
+            V_flag      => Va, 
+            C_flag      => Ca, 
+            N_flag      => Na
+        );
+    Sub: sub_32bits port map (
+          A          => A, 
+          B          => B, 
+          Bi         => Ci_Bi, 
+          difference => res_sub, 
+          Z_flag     => Zs, 
+          V_flag     => Vs, 
+          C_flag     => Cs, 
+          N_flag     => Ns
+    );
     
     -- Convert opcodes to integers
     -- Optional we can directly use the bits for case statement
@@ -84,18 +110,18 @@ begin
                 end case;
 
             when 1 =>  -- SLL
-                res_temp <= std_logic_vector(shift_left(unsigned(A), to_integer(unsigned(B(4 downto 0)))));
+                res_temp <= std_logic_vector(shift_left(unsigned(A), to_integer(unsigned(B(REG_ADDR_WIDTH - 1 downto 0)))));
 
             when 2 =>  -- SLT
                 if signed(A) < signed(B) then
-                    res_temp <= (31 downto 1 => '0') & '1';
+                    res_temp <= (DATA_WIDTH - 1 downto 1 => '0') & '1';
                 else
                     res_temp <= (others => '0');
                 end if;
 
             when 3 =>  -- SLTU
                 if unsigned(A) < unsigned(B) then
-                    res_temp <= (31 downto 1 => '0') & '1';
+                    res_temp <= (DATA_WIDTH - 1 downto 1 => '0') & '1';
                 else
                     res_temp <= (others => '0');
                 end if;
@@ -106,9 +132,9 @@ begin
             when 5 =>  -- SRL/SRA
                 case func_7 is
                     when 0 =>    -- SRL
-                        res_temp <= std_logic_vector(shift_right(unsigned(A), to_integer(unsigned(B(4 downto 0)))));
+                        res_temp <= std_logic_vector(shift_right(unsigned(A), to_integer(unsigned(B(REG_ADDR_WIDTH - 1 downto 0)))));
                     when 32 =>   -- SRA
-                        res_temp <= std_logic_vector(shift_right(signed(A), to_integer(unsigned(B(4 downto 0)))));
+                        res_temp <= std_logic_vector(shift_right(signed(A), to_integer(unsigned(B(REG_ADDR_WIDTH - 1 downto 0)))));
                     when others =>
                         res_temp <= (others => '0');
                 end case;

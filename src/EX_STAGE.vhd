@@ -8,23 +8,30 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use work.Pipeline_Types.all;
 
 entity EX_STAGE is
+    Generic( DATA_WIDTH  : natural    := DATA_WIDTH;
+             F7_WIDTH    : natural    := FUNCT7_WIDTH;
+             F3_WIDTH    : natural    := FUNCT3_WIDTH;
+             OP_WIDTH    : natural    := OPCODE_WIDTH
+             
+			);
     Port (
         -- Inputs from ID/EX pipeline register 
         
-        reg_data1_in    : in  std_logic_vector(31 downto 0);
-        reg_data2_in    : in  std_logic_vector(31 downto 0);
-        op_in           : in  std_logic_vector(6 downto 0);
-        f3_in           : in  std_logic_vector(2 downto 0);
-        f7_in           : in  std_logic_vector(6 downto 0); 
+        reg_data1_in    : in  std_logic_vector(DATA_WIDTH - 1 downto 0);
+        reg_data2_in    : in  std_logic_vector(DATA_WIDTH - 1 downto 0);
+        op_in           : in  std_logic_vector(OP_WIDTH - 1 downto 0);
+        f3_in           : in  std_logic_vector(F3_WIDTH - 1 downto 0);
+        f7_in           : in  std_logic_vector(F7_WIDTH - 1 downto 0); 
         
-        result_out      : out std_logic_vector(31 downto 0);
+        result_out      : out std_logic_vector(DATA_WIDTH - 1 downto 0);
         Z_flag_out      : out std_logic;
         V_flag_out      : out std_logic;
         C_flag_out      : out std_logic;
         N_flag_out      : out std_logic;
-        op_out          : out std_logic_vector(6 downto 0) 
+        op_out          : out std_logic_vector(OP_WIDTH - 1 downto 0) 
     );
 end EX_STAGE;
 
@@ -33,11 +40,11 @@ architecture behavior of EX_STAGE is
     -- ALU component declaration
     component ALU
         Port (
-            A, B       : in  std_logic_vector(31 downto 0);
+            A, B       : in  std_logic_vector(DATA_WIDTH - 1 downto 0);
             Ci_Bi      : in  std_logic;
-            f3         : in  std_logic_vector(2 downto 0);
-            f7         : in  std_logic_vector(6 downto 0);
-            result     : out std_logic_vector(31 downto 0);
+            f3         : in  std_logic_vector(F3_WIDTH - 1 downto 0);
+            f7         : in  std_logic_vector(F7_WIDTH - 1 downto 0);
+            result     : out std_logic_vector(DATA_WIDTH - 1 downto 0);
             Z_flag     : out std_logic;
             V_flag     : out std_logic;
             C_flag     : out std_logic;
@@ -46,12 +53,12 @@ architecture behavior of EX_STAGE is
     end component;
 
     -- Internal signals
-    signal alu_result     : std_logic_vector(31 downto 0) := (others => '0');  
-    signal Z_flag_wire    : std_logic                     := '0';
-    signal V_flag_wire    : std_logic                     := '0';
-    signal C_flag_wire    : std_logic                     := '0';
-    signal N_flag_wire    : std_logic                     := '0';
-    signal Ci_Bi          : std_logic                     := '0';  -- Carry-in or B-invert flag, can be expanded
+    signal alu_result     : std_logic_vector(DATA_WIDTH - 1 downto 0) := (others => '0');  
+    signal Z_flag_wire    : std_logic                                 := '0';
+    signal V_flag_wire    : std_logic                                 := '0';
+    signal C_flag_wire    : std_logic                                 := '0';
+    signal N_flag_wire    : std_logic                                 := '0';
+    signal Ci_Bi          : std_logic                                 := '0';  -- Carry-in or B-invert flag, can be expanded
 
 begin
 
