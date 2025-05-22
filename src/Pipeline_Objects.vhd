@@ -24,16 +24,16 @@ package Pipeline_Types is
     constant FUNCT7_WIDTH   : integer := 7;
     constant OPCODE_WIDTH   : integer := 7;
     constant FLAG_WIDTH     : integer := 4;
-    constant DEPTH          : integer := 256;
-    constant LOG2DEPTH      : integer := 8;
+    constant DEPTH          : integer := 4;
+    constant LOG2DEPTH      : integer := 2;
     constant IMM_WIDTH      : integer := 12;
     constant STALL_WIDTH    : integer := 2;
     
     -- Forwarding control type
     type ForwardingType is (
-        FORWARD_NONE,    -- "00" 
-        FORWARD_MEM_WB,   -- "01"
-        FORWARD_EX_MEM  -- "10"
+        FORWARD_NONE,       -- "00" 
+        FORWARD_MEM_WB,     -- "01"
+        FORWARD_EX_MEM      -- "10"
         );
         
     type numStall is (

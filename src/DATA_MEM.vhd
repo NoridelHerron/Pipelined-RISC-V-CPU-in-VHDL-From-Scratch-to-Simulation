@@ -60,6 +60,15 @@ begin
         end if;
     end process;
 
-    read_data <= mem(to_integer(unsigned(address))) when mem_read = '1' else (others => '0');
+    process(mem_read, address, mem)
+    begin
+        
+        if mem_read = '1' then
+            read_data <= mem(to_integer(unsigned(address)));
+        else
+            read_data <= (others => '0');
+        end if;
+    end process;
+
         
 end Behavioral;

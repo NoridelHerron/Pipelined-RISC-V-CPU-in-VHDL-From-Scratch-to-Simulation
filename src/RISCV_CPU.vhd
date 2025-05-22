@@ -29,11 +29,7 @@ entity RISCV_CPU is
     Port (  clk                    : in std_logic;
             reset                  : in std_logic;
             -- IF
-            IF_STAGE_out           : out PipelineStages_Inst_PC;
-            ID_STAGE_out           : out PipelineStages_Inst_PC;
-            EX_STAGE_out           : out PipelineStages_Inst_PC;
-            MEM_STAGE_out          : out PipelineStages_Inst_PC;
-            WB_STAGE_out           : out PipelineStages_Inst_PC;
+            IF_STAGE_out           : out PipelineStages_Inst_PC; 
             IF_ID_STAGE_out        : out PipelineStages_Inst_PC;
             ID_EX_STAGE_out        : out PipelineStages_Inst_PC;
             EX_MEM_STAGE_out       : out PipelineStages_Inst_PC;
@@ -152,11 +148,8 @@ begin
     ID_EX_STAGE_out        <= ID_EX_STAGE;
     EX_MEM_STAGE_out       <= EX_MEM_STAGE;
     MEM_WB_STAGE_out       <= MEM_WB_STAGE;
-    ID_out                 <= ID;
     ID_EX_out              <= ID_EX;
-    EX_out                 <= EX;
     EX_MEM_out             <= EX_MEM;
-    MEM_out                <= MEM;
     MEM_WB_out             <= MEM_WB;
     WB_out                 <= WB;
     num_stall              <= stall;

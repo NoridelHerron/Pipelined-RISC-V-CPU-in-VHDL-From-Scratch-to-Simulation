@@ -28,11 +28,8 @@ architecture sim of tb_CPU_RISCV is
     signal EX_MEM_STAGE     : PipelineStages_Inst_PC        := EMPTY_inst_pc;
     signal MEM_WB_STAGE     : PipelineStages_Inst_PC        := EMPTY_inst_pc;
  
-    signal ID               : ID_EX_Type                    := EMPTY_ID_EX_Type;
     signal ID_EX            : ID_EX_Type                    := EMPTY_ID_EX_Type;  
-    signal EX               : EX_MEM_Type                   := EMPTY_EX_MEM_Type;
     signal EX_MEM           : EX_MEM_Type                   := EMPTY_EX_MEM_Type; 
-    signal MEM              : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
     signal MEM_WB           : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
     signal WB               : WB_Type                       := EMPTY_WB_Type;
 
@@ -46,12 +43,9 @@ begin
                     IF_ID_STAGE_out        => IF_ID_STAGE,
                     ID_EX_STAGE_out        => ID_EX_STAGE,
                     EX_MEM_STAGE_out       => EX_MEM_STAGE,
-                    MEM_WB_STAGE_out       => MEM_WB_STAGE,
-                    ID_out                 => ID,
+                    MEM_WB_STAGE_out       => MEM_WB_STAGE,      
                     ID_EX_out              => ID_EX,
-                    EX_out                 => EX,
                     EX_MEM_out             => EX_MEM,
-                    MEM_out                => MEM,
                     MEM_WB_out             => MEM_WB,
                     WB_out                 => WB,
                     num_stall              => stall,
@@ -75,6 +69,26 @@ begin
         reset <= '0';
         wait;
     end process;
+    
+    process(ForwardA)
+    variable haz_MEM_WB_A : integer := 0;
+    begin
+        if ForwardA = FORWARD_MEM_WB then
+            haz_MEM_WB_A := haz_MEM_WB_A + 1;
+            report " Expected Hazard: ForwardA = FORWARD_MEM_WB | rs2 = " & to_hexstring(MEM_WB.rd);
+        elsif ForwardA = FORWARD_EX_MEM then
+            haz_MEM_WB_A := haz_MEM_WB_A + 1;
+            report " Expected Hazard: ForwardA = FORWARD_EX_MEM | rs2 = " & to_hexstring(EX_MEM.rd);
+        end if;
+    
+        -- Print summary at end of simulation
+        if now >= 4999 ns then
+            report "========== Forwarding Test Summary ==========";
+            report "ForwardB from EX_MEM (rs2 hazards): " & integer'image(haz_MEM_WB_A);
+            report "============================================";
+        end if;
+    end process;
+    
 
     end_simulation : process
     begin

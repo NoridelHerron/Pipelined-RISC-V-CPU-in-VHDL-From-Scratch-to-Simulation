@@ -16,7 +16,16 @@ end WB_STA;
 architecture Behavioral of WB_STA is
 
 begin
-WB.data     <= MEM_WB.alu_result when MEM_WB.reg_write = '1' else MEM_WB.mem_result;
-WB.write    <= '1' when MEM_WB.op /= S_TYPE;
-WB.rd       <= MEM_WB.rd;
+
+    process(MEM_WB)
+    begin
+        if MEM_WB.reg_write = '1' and MEM_WB.mem_read /= '1'then
+            WB.data     <= MEM_WB.alu_result;
+        else
+            WB.data     <= MEM_WB.mem_result;        
+        end if;
+    end process;
+    
+    WB.rd       <= MEM_WB.rd;
+    WB.write    <= MEM_WB.reg_write;
 end Behavioral;
