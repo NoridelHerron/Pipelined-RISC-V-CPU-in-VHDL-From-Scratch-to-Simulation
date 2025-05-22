@@ -14,8 +14,8 @@ package Pipeline_Types is
     constant LOAD   : std_logic_vector(6 downto 0) := "0000011";
     constant S_TYPE : std_logic_vector(6 downto 0) := "0100011";
     
-    --constant ENABLE_FORWARDING : boolean := true;
-    constant ENABLE_FORWARDING : boolean := false;
+    constant ENABLE_FORWARDING : boolean := true;
+    --constant ENABLE_FORWARDING : boolean := false;
     
     -- You can also define constants 
     constant DATA_WIDTH     : integer := 32;
@@ -78,7 +78,6 @@ package Pipeline_Types is
         mem_result  : std_logic_vector(DATA_WIDTH-1 downto 0);      -- MEM result
         rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);  -- register destination
         op          : std_logic_vector(OPCODE_WIDTH-1 downto 0);    -- opcode  
-        from_mem    : std_logic;
         reg_write   : std_logic;
         mem_read    : std_logic;    
         mem_write   : std_logic;
@@ -87,6 +86,7 @@ package Pipeline_Types is
     type WB_Type is record
         write       : std_logic;      -- ALU result
         data        : std_logic_vector(DATA_WIDTH-1 downto 0); 
+        rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
     end record;
     
     -- Initialize all to 0
@@ -125,8 +125,7 @@ package Pipeline_Types is
         alu_result  => (others => '0'),
         mem_result  => (others => '0'),
         rd          => (others => '0'),
-        op          => (others => '0'),
-        from_mem    => '0',
+        op          => (others => '0'),  
         reg_write   => '0',
         mem_read    => '0',
         mem_write   => '0'     
@@ -134,7 +133,8 @@ package Pipeline_Types is
     
     constant EMPTY_WB_Type : WB_Type := (
         write       => '0',
-        data        => (others => '0')
+        data        => (others => '0'),
+        rd          => (others => '0')
     );
     
 end package;

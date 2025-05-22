@@ -111,7 +111,6 @@ begin
     
     EXECUTION : entity work.EX_STAGE port map (
         ID_EX           => ID_EX,
-
         EX              => EX   
     );
     

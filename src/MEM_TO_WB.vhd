@@ -36,6 +36,11 @@ begin
              else
                 MEM_WB_reg.alu_result <= EX_MEM.result;
              end if;  
+              MEM_WB_reg.rd        <= EX_MEM.rd;
+              MEM_WB_reg.op        <= EX_MEM.op;
+              MEM_WB_reg.reg_write <= EX_MEM.reg_write;
+              MEM_WB_reg.mem_read  <= EX_MEM.mem_read;
+              MEM_WB_reg.mem_write <= EX_MEM.mem_write;         
         end if;    
     end process;
 

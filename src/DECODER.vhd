@@ -27,17 +27,19 @@ end DECODER;
 
 architecture behavior of DECODER is
 
-signal ID_reg          : ID_EX_Type := EMPTY_ID_EX_Type;
+signal ID_reg    : ID_EX_Type                                    := EMPTY_ID_EX_Type;
+signal rs1_addr  : std_logic_vector(REG_ADDR_WIDTH - 1 downto 0) := (others => '0');
+signal rs2_addr  : std_logic_vector(REG_ADDR_WIDTH - 1 downto 0) := (others => '0');
  
 begin 
     REGISTER_UUT: entity work.RegisterFile
         port map ( clk            => clk, 
                    rst            => reset, 
                    write_enable   => WB.write, 
-                   write_addr     => MEM_WB.rd, 
+                   write_addr     => WB.rd, 
                    write_data     => WB.data, 
-                   read_addr1     => ID_reg.rs1, 
-                   read_addr2     => ID_reg.rs2, 
+                   read_addr1     => rs1_addr, 
+                   read_addr2     => rs2_addr, 
                    read_data1     => ID_reg.reg_data1, 
                    read_data2     => ID_reg.reg_data2
                    );  
@@ -87,20 +89,21 @@ begin
     
     if ENABLE_FORWARDING then
     
+        -- FORWARD_A
         case ForwardA is
-            when FORWARD_NONE   => 
+            when FORWARD_NONE =>
                 ID_temp.reg_data1 := ID_reg.reg_data1;
-            when FORWARD_EX_MEM => 
-                if MEM_WB.op = R_TYPE or MEM_WB.op = I_IMME then
-                    ID_temp.reg_data1 := MEM_WB.alu_result;
-                else
-                    ID_temp.reg_data1 := MEM_WB.mem_result;
-                end if;      
-            when FORWARD_MEM_WB => 
-                ID_temp.reg_data1 := EX_MEM.result; 
-            when others => 
+        
+            when FORWARD_EX_MEM =>
+                ID_temp.reg_data1 := EX_MEM.result;
+        
+            when FORWARD_MEM_WB =>
+                ID_temp.reg_data1 := WB.data;         
+        
+            when others =>
                 ID_temp.reg_data1 := (others => '0');
         end case;
+
         
         case ForwardB is
             when FORWARD_NONE =>
@@ -127,11 +130,7 @@ begin
                 ID_temp.reg_data2 := EX_MEM.result;
                 
             when FORWARD_MEM_WB => -- from EX_MEM stage
-                if MEM_WB.op = R_TYPE or MEM_WB.op = I_IMME then
-                    ID_temp.reg_data2 := MEM_WB.alu_result;
-                else
-                    ID_temp.reg_data2 := MEM_WB.mem_result;
-                end if;      
+                ID_temp.reg_data2 := WB.data;    
             when others => 
                 ID_temp.reg_data2 := (others => '0');
         end case;
@@ -159,8 +158,8 @@ begin
         end case;
     end if;   
     
-    ID_reg.rs1      <= ID_temp.rs1;
-    ID_reg.rs2      <= ID_temp.rs2;
+    rs1_addr        <= ID_temp.rs1;
+    rs2_addr        <= ID_temp.rs2;
     ID.rs1          <= ID_temp.rs1;
     ID.rs2          <= ID_temp.rs2;
     ID.reg_data1    <= ID_temp.reg_data1;
