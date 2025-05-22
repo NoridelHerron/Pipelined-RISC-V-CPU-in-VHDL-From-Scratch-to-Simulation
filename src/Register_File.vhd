@@ -7,30 +7,34 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use work.Pipeline_Types.all;
 
 entity RegisterFile is
+    Generic( DATA_WIDTH     : natural    := DATA_WIDTH;
+             REG_ADDR_WIDTH : natural    := REG_ADDR_WIDTH
+			);
     Port ( -- inputs
            clk          : in  std_logic;
            rst          : in  std_logic;
            -- Read or write
            write_enable : in  std_logic;
            -- For store
-           write_addr   : in  std_logic_vector(4 downto 0);
+           write_addr   : in  std_logic_vector(REG_ADDR_WIDTH - 1 downto 0);
            -- For load
-            write_data   : in  std_logic_vector(31 downto 0);
+            write_data   : in  std_logic_vector(DATA_WIDTH - 1 downto 0);
            -- register addresses 
-           read_addr1   : in  std_logic_vector(4 downto 0);
-           read_addr2   : in  std_logic_vector(4 downto 0);
+           read_addr1   : in  std_logic_vector(REG_ADDR_WIDTH - 1 downto 0);
+           read_addr2   : in  std_logic_vector(REG_ADDR_WIDTH - 1 downto 0);
            -- output register values
-           read_data1   : out std_logic_vector(31 downto 0);
-           read_data2   : out std_logic_vector(31 downto 0)
+           read_data1   : out std_logic_vector(DATA_WIDTH - 1 downto 0);
+           read_data2   : out std_logic_vector(DATA_WIDTH - 1 downto 0)
         );
 end RegisterFile;
 
 architecture Behavioral of RegisterFile is
 
     -- 32 registers, each 32 bits wide
-    type reg_array is array (31 downto 0) of std_logic_vector(31 downto 0);
+    type reg_array is array (DATA_WIDTH - 1 downto 0) of std_logic_vector(DATA_WIDTH - 1 downto 0);
     signal registers : reg_array := (others => (others => '0')); -- initialize all to 0
 
 begin
