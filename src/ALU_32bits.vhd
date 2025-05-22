@@ -30,27 +30,6 @@ end ALU;
 
 architecture operations of ALU is
 
-    -- Adder
-    component adder_32bits
-        Port ( -- inputs
-               A,B  : in std_logic_vector(DATA_WIDTH - 1 downto 0);           -- 32-bits inputs
-               Ci   : in std_logic;                               -- 1-bit input
-               -- outputs
-               Sum  : out std_logic_vector(DATA_WIDTH - 1 downto 0);          -- 32-bits outputs
-               Z_flag, V_flag, C_flag, N_flag : out std_logic   -- 1-bit output
-              );
-    end component;
-    
-    -- Subtractor
-    component sub_32bits
-        Port ( -- inputs
-               A,B : in std_logic_vector(DATA_WIDTH - 1 downto 0);             -- 32-bits inputs
-               Bi  : in std_logic;                                 -- 1-bit input
-               -- outputs
-               difference : out std_logic_vector(DATA_WIDTH - 1 downto 0);     -- 32-bits outputs
-               Z_flag, V_flag, C_flag, N_flag : out std_logic);    -- 1-bit output
-    end component;
-    
     -- Internal signals
     signal func_3                            : integer range 0 to 7;
     signal func_7                            : integer range 0 to 32;
@@ -59,7 +38,7 @@ architecture operations of ALU is
 
 begin
     -- Instantiate adder and subtractor
-    Add: adder_32bits port map (
+    Add: entity work.adder_32bits port map (
             A           => A, 
             B           => B, 
             Ci          => Ci_Bi, 
@@ -69,7 +48,7 @@ begin
             C_flag      => Ca, 
             N_flag      => Na
         );
-    Sub: sub_32bits port map (
+    Sub: entity work.sub_32bits port map (
           A          => A, 
           B          => B, 
           Bi         => Ci_Bi, 

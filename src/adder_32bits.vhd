@@ -21,13 +21,6 @@ end adder_32bits;
 
 architecture Equation of adder_32bits is
 
-    component FullAdder is 
-        port(
-            A, B, Ci : in std_logic;
-            Co, S    : out std_logic
-        );
-    end component; 
-
     -- Internal signals
     signal Co : std_logic;
     signal C  : std_logic_vector (DATA_WIDTH - 1 downto 1);
@@ -36,7 +29,7 @@ architecture Equation of adder_32bits is
 begin
     -- Instantiate FullAdders for 32-bit addition
     -- First Full Adder manually (no previous carry-in signal)
-    FA0: FullAdder port map (
+    FA0: entity work.FullAdder port map (
         A => A(0),
         B => B(0),
         Ci => Ci,
@@ -46,7 +39,7 @@ begin
 
     -- Generate Full Adders for bits 1 to 30
     FA_Gen: for i in 1 to 30 generate
-        FA: FullAdder port map (
+        FA: entity work.FullAdder port map (
             A => A(i),
             B => B(i),
             Ci => C(i),
@@ -56,7 +49,7 @@ begin
     end generate;
 
     -- Last Full Adder (bit 31) outputs to Co
-    FA31: FullAdder port map (
+    FA31: entity work.FullAdder port map (
         A => A(DATA_WIDTH - 1),
         B => B(DATA_WIDTH - 1),
         Ci => C(DATA_WIDTH - 1),

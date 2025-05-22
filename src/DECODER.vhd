@@ -5,105 +5,143 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use work.Pipeline_Types.all;
 
 entity DECODER is
+    Generic( REG_ADDR_WIDTH : natural    := REG_ADDR_WIDTH;
+             DATA_WIDTH     : natural    := DATA_WIDTH
+            );
     Port (  -- inputs
-            FORWARDING      : in  std_logic;
-            instr_in        : in  std_logic_vector(31 downto 0);
-            EX_MEM_rd       : in std_logic_vector(4 downto 0);
-            EX_MEM_op       : in std_logic_vector(6 downto 0);
-            MEM_WB_op       : in std_logic_vector(6 downto 0);
-            MEM_WB_rd       : in std_logic_vector(4 downto 0);     
-            Forward_A       : out std_logic_vector(1 downto 0);
-            Forward_B       : out std_logic_vector(1 downto 0);
-            num_NOP         : out std_logic_vector(1 downto 0);
-            op              : out std_logic_vector(6 downto 0);
-            f3              : out std_logic_vector(2 downto 0);
-            f7              : out std_logic_vector(6 downto 0);   
-            -- register destination
-            rd              : out std_logic_vector(4 downto 0);     
-            -- optional, but good for debugging
-            rs1             : out std_logic_vector(4 downto 0);
-            rs2             : out std_logic_vector(4 downto 0);
-            -- for IF stage and for debugging 
-            S_immediate     : out std_logic_vector(11 downto 0);
-            I_immediate     : out std_logic_vector(11 downto 0)
+            clk             : in  std_logic; 
+            reset           : in  std_logic;  -- added reset input
+            IF_ID_STAGE     : in  PipelineStages_Inst_PC; 
+            EX_MEM          : in  EX_MEM_Type;
+            MEM_WB          : in  MEM_WB_Type;
+            WB              : in  WB_Type; 
+            ID              : out ID_EX_Type; 
+            Forward_A       : out ForwardingType; 
+            Forward_B       : out ForwardingType; 
+            stall           : out numStall
         );
 end DECODER;
 
 architecture behavior of DECODER is
 
-    -- optional, but makes my code cleaner 
-    constant R_TYPE : std_logic_vector(6 downto 0) := "0110011";
-    constant I_IMM  : std_logic_vector(6 downto 0) := "0010011";
-    constant LOAD   : std_logic_vector(6 downto 0) := "0000011";
-    constant S_TYPE : std_logic_vector(6 downto 0) := "0100011";
-
-begin  
-    process (FORWARDING,instr_in, EX_MEM_rd, EX_MEM_op, MEM_WB_op, MEM_WB_rd)
-    variable store_value        : std_logic_vector(31 downto 0) := (others => '0');
-    variable opcode_v  : std_logic_vector(6 downto 0)  := (others => '0');
-    variable rs1_temp  : std_logic_vector(4 downto 0)  := (others => '0');
-    variable rs2_temp  : std_logic_vector(4 downto 0)  := (others => '0');
-    variable rd_temp   : std_logic_vector(4 downto 0)  := (others => '0');
-    variable f3_temp   : std_logic_vector(2 downto 0)  := (others => '0');
-    variable f7_temp   : std_logic_vector(6 downto 0)  := (others => '0');
-    variable S_imm     : std_logic_vector(11 downto 0) := (others => '0');
-    variable I_imm     : std_logic_vector(11 downto 0) := (others => '0');
+signal ID_reg          : ID_EX_Type := EMPTY_ID_EX_Type;
+ 
+begin 
+    REGISTER_UUT: entity work.RegisterFile
+        port map ( clk            => clk, 
+                   rst            => reset, 
+                   write_enable   => WB.write, 
+                   write_addr     => MEM_WB.rd, 
+                   write_data     => WB.data, 
+                   read_addr1     => IF_ID_STAGE.instr(19 downto 15), 
+                   read_addr2     => IF_ID_STAGE.instr(24 downto 20), 
+                   read_data1     => ID_reg.reg_data1, 
+                   read_data2     => ID_reg.reg_data2
+                   );  
+    process (IF_ID_STAGE, EX_MEM, MEM_WB, WB)
+    variable ID_temp        : ID_EX_Type := EMPTY_ID_EX_Type;
+    variable ForwardA       : ForwardingType                                := FORWARD_NONE;
+    variable ForwardB       : ForwardingType                                := FORWARD_NONE;
+    
     begin 
-        f7_temp   := instr_in(31 downto 25);
-        rs2_temp  := instr_in(24 downto 20);
-        rs1_temp  := instr_in(19 downto 15);
-        f3_temp   := instr_in(14 downto 12);
-        rd_temp   := instr_in(11 downto 7);
-        opcode_v  := instr_in(6 downto 0);
-        S_imm     := f7_temp & rd_temp;
-        I_imm     := f7_temp & rs2_temp;  
-    if FORWARDING = '1' then     
-        if EX_MEM_op /= S_TYPE and EX_MEM_rd /= "00000" and EX_MEM_rd = rs1_temp then
-            Forward_A <= "10";                     
-        elsif MEM_WB_op /= S_TYPE and MEM_WB_rd /= "00000" and MEM_WB_rd = rs1_temp then
-            Forward_A <= "01";
-        else
-            Forward_A <= "00"; 
-        end if;
+        ID_temp.funct7   := IF_ID_STAGE.instr(31 downto 25);
+        ID_temp.rs2      := IF_ID_STAGE.instr(24 downto 20);
+        ID_temp.rs1      := IF_ID_STAGE.instr(19 downto 15);
+        ID_temp.funct3   := IF_ID_STAGE.instr(14 downto 12);
+        ID_temp.rd       := IF_ID_STAGE.instr(11 downto 7);
+        ID_temp.op       := IF_ID_STAGE.instr(6 downto 0);
         
-        -- Forwarding logic for rs2:
-        -- If rs2 depends on a value being written back by one of the two previous instructions,
-        -- forward from EX/MEM (priority) or MEM/WB as needed
-        if EX_MEM_op /= S_TYPE and EX_MEM_rd /= "00000" and EX_MEM_rd = rs2_temp then
-            Forward_B <= "10";     
-        elsif MEM_WB_op /= S_TYPE and MEM_WB_rd /= "00000" and MEM_WB_rd = rs2_temp then
-            Forward_B <= "01";  
+    if ENABLE_FORWARDING then     
+        if EX_MEM.op /= S_TYPE and EX_MEM.rd /= "00000" and EX_MEM.rd = ID_temp.rs1 then
+            ForwardA := FORWARD_EX_MEM;                     
+        elsif MEM_WB.op /= S_TYPE and MEM_WB.rd /= "00000" and MEM_WB.rd = ID_temp.rs1 then
+            ForwardA := FORWARD_MEM_WB;
         else
-            Forward_B <= "00";       
+            ForwardA := FORWARD_NONE; 
         end if;
-    else
-        -- If forwarding is disabled, check for RAW (read-after-write) hazards.
-        -- A stall is needed if either rs1 or rs2 matches the destination register
-        -- of the previous (EX_MEM) or second previous (MEM_WB) instruction,
-        -- and the register is not x0 (register 0).
-        -- 
-        -- Priority: EX_MEM hazards stall for 2 cycles ("11"), 
-        --           MEM_WB hazards stall for 1 cycle ("10"), 
-        --           otherwise propagate stall input.
-        if EX_MEM_op /= S_TYPE and EX_MEM_rd /= "00000" and (EX_MEM_rd = rs1_temp or EX_MEM_rd = rs2_temp) then
-           num_NOP <= "11";
-        elsif MEM_WB_op /= S_TYPE and MEM_WB_rd /= "00000" and (MEM_WB_rd = rs1_temp or MEM_WB_rd = rs2_temp) then
-           num_NOP <= "10";
+        Forward_A <= ForwardA;
+        
+        if EX_MEM.op /= S_TYPE and EX_MEM.rd /= "00000" and EX_MEM.rd = ID_temp.rs2 then
+            ForwardB := FORWARD_EX_MEM;        
+        elsif MEM_WB.op /= S_TYPE and MEM_WB.rd /= "00000" and MEM_WB.rd = ID_temp.rs2 then
+            ForwardB := FORWARD_MEM_WB; 
         else
-           num_NOP <= "00"; 
+            ForwardB := FORWARD_NONE;       
+        end if;
+        Forward_B <= ForwardB;
+    else
+        if EX_MEM.op /= S_TYPE and EX_MEM.rd /= "00000" and (EX_MEM.rd = ID_temp.rs1 or EX_MEM.rd = ID_temp.rs2) then
+           stall <= STALL_EX_MEM;
+        elsif MEM_WB.op /= S_TYPE and MEM_WB.rd /= "00000" and (MEM_WB.rd = ID_temp.rs1 or MEM_WB.rd = ID_temp.rs2) then
+           stall <= STALL_MEM_WB;
+        else
+           stall <= STALL_NONE;
         end if;
     end if;
     
-        rs1         <= rs1_temp;
-        rs2         <= rs2_temp;
-        rd          <= rd_temp;
-        op          <= opcode_v;
-        f3          <= f3_temp;
-        f7          <= f7_temp;
-        S_immediate <= S_imm;
-        I_immediate <= I_imm;
-
+    if ENABLE_FORWARDING then
+        case ForwardA is
+            when FORWARD_NONE   => 
+                ID_temp.reg_data1 := ID_reg.reg_data1;
+            when FORWARD_EX_MEM => 
+                if MEM_WB.op = R_TYPE or MEM_WB.op = I_IMME then
+                    ID_temp.reg_data1 := MEM_WB.alu_result;
+                else
+                    ID_temp.reg_data1 := MEM_WB.mem_result;
+                end if;      
+            when FORWARD_MEM_WB => 
+                ID_temp.reg_data1 := EX_MEM.result; 
+            when others => 
+                ID_temp.reg_data1 := (others => '0');
+        end case;
+        case ForwardB is
+            when FORWARD_NONE =>
+                case ID_temp.op is
+                    when R_TYPE => -- R-type: use second register value
+                        ID_temp.reg_data2 := ID_reg.reg_data2;
+                        
+                    when I_IMME | LOAD =>  -- I-type: immediate is in bits [31:20], sign-extended 
+                        ID_temp.reg_data2 := std_logic_vector(resize(signed(ID_temp.funct7 & ID_temp.rs2), 32));
+                        
+                    when S_TYPE => -- S-type: immediate is split across [31:25] and [11:7], sign-extended
+                        ID_temp.reg_data2 := std_logic_vector(resize(signed(ID_temp.funct7 & ID_temp.rd), 32));
+                        ID_temp.store_rs2  := ID_reg.reg_data2;
+                    when others => 
+                        ID_temp.reg_data2 := (others => '0');
+                end case;
+            when FORWARD_EX_MEM => -- from MEM_WB stage
+                if MEM_WB.op = R_TYPE or MEM_WB.op = I_IMME then
+                    ID_temp.reg_data2 := MEM_WB.alu_result;
+                else
+                    ID_temp.reg_data2 := MEM_WB.mem_result;
+                end if;      
+            when FORWARD_MEM_WB => -- from EX_MEM stage
+                ID_temp.reg_data2 := EX_MEM.result;
+            when others => 
+                ID_temp.reg_data2 := (others => '0');
+        end case;
+    else
+        ID_temp.reg_data1 := ID_reg.reg_data1;
+        case ID_temp.op is
+            when R_TYPE => -- R-type: use second register value
+                ID_temp.reg_data2 := ID_reg.reg_data2;
+                
+            when I_IMME | LOAD =>  -- I-type: immediate is in bits [31:20], sign-extended 
+                ID_temp.reg_data2 := std_logic_vector(resize(signed(ID_temp.funct7 & ID_temp.rs2), 32));
+                
+            when S_TYPE => -- S-type: immediate is split across [31:25] and [11:7], sign-extended
+                ID_temp.reg_data2 := std_logic_vector(resize(signed(ID_temp.funct7 & ID_temp.rd), 32));
+                ID_temp.store_rs2  := ID_reg.reg_data2;
+            when others => 
+                ID_temp.reg_data2 := (others => '0');
+        end case;
+    end if;   
+    ID          <= ID_temp;
+    ID_reg      <= ID_temp;
+    Forward_A   <= ForwardA;
+    Forward_B   <= ForwardB;
     end process;
 end behavior;

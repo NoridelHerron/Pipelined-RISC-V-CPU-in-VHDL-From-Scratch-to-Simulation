@@ -20,13 +20,6 @@ end sub_32bits;
 
 architecture equation of sub_32bits is
 
-    component FullSubtractor 
-        port (
-            X, Y, Bin : in std_logic; 
-            Bout, D   : out std_logic
-        ); 
-    end component;  
-
     -- Internal signals
     signal Bo : std_logic;
     signal Br  : std_logic_vector (DATA_WIDTH - 1 downto 1); 
@@ -35,7 +28,7 @@ architecture equation of sub_32bits is
 begin 
     
     -- -- First Full Subtractor manually
-    FS0: FullSubtractor port map (
+    FS0: entity work.FullSubtractor port map (
         X       => A(0),
         Y       => B(0),
         Bin     => Bi,
@@ -45,7 +38,7 @@ begin
 
     -- Generate Full Adders for bits 1 to 30
     FS_Gen: for i in 1 to 30 generate
-        FS: FullSubtractor port map (
+        FS: entity work.FullSubtractor port map (
         X       => A(i),
         Y       => B(i),
         Bin     => Br(DATA_WIDTH - i),
@@ -55,7 +48,7 @@ begin
     end generate;
 
     -- Last Full Subtractor 
-    FS31: FullSubtractor port map (
+    FS31: entity work.FullSubtractor port map (
         X       => A(DATA_WIDTH - 1),
         Y       => B(DATA_WIDTH - 1),
         Bin     => Br(1),

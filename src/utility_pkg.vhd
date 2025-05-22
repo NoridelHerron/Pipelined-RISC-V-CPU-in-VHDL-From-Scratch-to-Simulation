@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 05/17/2025 11:07:19 PM
+-- Create Date: 05/21/2025 07:00:25 AM
 -- Design Name: 
--- Module Name: MEM_WB - behavior
+-- Module Name: utility_pkg - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -31,13 +31,13 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity MEM_WB is
+entity utility_pkg is
 --  Port ( );
-end MEM_WB;
+end utility_pkg;
 
-architecture behavior of MEM_WB is
+architecture Behavioral of utility_pkg is
 
 begin
 
 
-end behavior;
+end Behavioral;

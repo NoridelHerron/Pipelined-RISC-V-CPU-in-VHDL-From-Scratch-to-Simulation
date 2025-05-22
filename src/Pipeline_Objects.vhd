@@ -10,7 +10,7 @@ package Pipeline_Types is
     constant NOP    : std_logic_vector(31 downto 0) := x"00000013";
     -- OPCODE TYPE
     constant R_TYPE : std_logic_vector(6 downto 0) := "0110011";
-    constant I_IMM  : std_logic_vector(6 downto 0) := "0010011";
+    constant I_IMME : std_logic_vector(6 downto 0) := "0010011";
     constant LOAD   : std_logic_vector(6 downto 0) := "0000011";
     constant S_TYPE : std_logic_vector(6 downto 0) := "0100011";
     
@@ -27,18 +27,21 @@ package Pipeline_Types is
     constant LOG2DEPTH      : integer := 10;
     constant DEPTH_USE      : integer := 1024;
     constant IMM_WIDTH      : integer := 12;
+    constant STALL_WIDTH    : integer := 2;
     
     -- Forwarding control type
     type ForwardingType is (
         FORWARD_NONE,    -- "00"
         FORWARD_EX_MEM,  -- "10"
         FORWARD_MEM_WB   -- "01"
-        );   
+        );
         
-    type INSERT_stall is record
-        stall       : std_logic_vector(1 downto 0);      -- instructions
-    end record;
-    
+    type numStall is (
+        STALL_NONE,    -- "00"
+        STALL_EX_MEM,  -- "10"
+        STALL_MEM_WB   -- "01"
+        );
+
     type PipelineStages_Inst_PC is record
         instr       : std_logic_vector(DATA_WIDTH-1 downto 0);      -- instructions
         pc          : std_logic_vector(DATA_WIDTH-1 downto 0);      -- program counter
@@ -69,8 +72,7 @@ package Pipeline_Types is
         mem_result  : std_logic_vector(DATA_WIDTH-1 downto 0);      -- MEM result
         rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);  -- register destination
         op          : std_logic_vector(OPCODE_WIDTH-1 downto 0);    -- opcode  
-        ALU_write   : std_logic;
-        MEM_write   : std_logic;
+        ALU_write   :std_logic;
     end record;
     
     type WB_Type is record
@@ -109,17 +111,12 @@ package Pipeline_Types is
         mem_result  => (others => '0'),
         rd          => (others => '0'),
         op          => (others => '0'),
-        ALU_write   => '0',
-        MEM_write   => '0'
+        ALU_write   => '0'
     );
     
     constant EMPTY_WB_Type : WB_Type := (
         write       => '0',
         data        => (others => '0')
-    );
-    
-    constant EMPTY_INSERT_stall : INSERT_stall := (
-        stall       => (others => '0')
     );
     
 end package;
