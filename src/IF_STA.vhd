@@ -12,7 +12,7 @@ use work.Pipeline_Types.all;
 entity IF_STA is
     Port ( clk             : in  std_logic; 
            reset           : in  std_logic;                           
-           IF_STAGE     : out PipelineStages_Inst_PC
+           IF_STAGE        : out PipelineStages_Inst_PC
          ); 
 
 end IF_STA;
@@ -20,16 +20,16 @@ end IF_STA;
 architecture behavior of IF_STA is
 
     -- we need a stable signal to hold the instruction before it gets send out
-    signal IF_STAGE_reg : PipelineStages_Inst_PC := EMPTY_inst_pc;
+    signal temp_reg : PipelineStages_Inst_PC := EMPTY_inst_pc;
     
     begin
     -- PC update and stall logic
    process(clk)
     begin
         if reset = '1' then  
-            IF_STAGE_reg.pc <= (others => '0');
+            temp_reg.pc <= (others => '0');
         elsif rising_edge(clk) then
-            IF_STAGE_reg.pc <= std_logic_vector(unsigned(IF_STAGE_reg.pc) + 4);
+            temp_reg.pc <= std_logic_vector(unsigned(temp_reg.pc) + 4);
         end if;
     end process;
     
@@ -38,12 +38,12 @@ architecture behavior of IF_STA is
         port map (
             clk   => clk,
             reset => reset,
-            addr  => IF_STAGE_reg.pc, 
-            instr => IF_STAGE_reg.instr
+            addr  => temp_reg.pc, 
+            instr => temp_reg.instr
         );
   
     -- Output to decoder
-    IF_STAGE     <= IF_STAGE_reg;
+    IF_STAGE     <= temp_reg;
       
 end behavior;
 

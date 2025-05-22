@@ -110,11 +110,8 @@ begin
     );
     
     EXECUTION : entity work.EX_STAGE port map (
-        reg_data1_in    => ID_EX.reg_data1,
-        reg_data2_in    => ID_EX.reg_data2,
-        op_in           => ID_EX.op,
-        f3_in           => ID_EX.funct3,
-        f7_in           => ID_EX.funct7,
+        ID_EX           => ID_EX,
+
         EX              => EX   
     );
     

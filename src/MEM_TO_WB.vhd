@@ -30,13 +30,12 @@ begin
              MEM_WB_STAGE_reg   <= EMPTY_inst_pc;
              MEM_WB_reg         <= EMPTY_MEM_WB_Type; 
         elsif rising_edge(clk) then
-             MEM_WB_STAGE   <= EMPTY_inst_pc;
-             if MEM.ALU_write = '1' then
-                MEM_WB_reg.alu_result <= EX_MEM.result;
+             MEM_WB_STAGE_reg   <= EX_MEM_STAGE;
+             if MEM.mem_read = '1' then
+                MEM_WB_reg.mem_result <= MEM.mem_result; 
              else
-                MEM_WB_reg.alu_result <= (others => '0');
-             end if;
-             MEM_WB_reg <= MEM; 
+                MEM_WB_reg.alu_result <= EX_MEM.result;
+             end if;  
         end if;    
     end process;
 
