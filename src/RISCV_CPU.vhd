@@ -40,7 +40,8 @@ entity RISCV_CPU is
             EX_MEM_out             : out EX_MEM_Type;
             MEM_out                : out MEM_WB_Type;
             MEM_WB_out             : out MEM_WB_Type;
-            WB_out                 : out WB_Type;   
+            WB_out                 : out WB_Type; 
+            reg_out                : out reg_Type;  
             num_stall              : out numStall;
             ForwardA_out           : out ForwardingType;
             ForwardB_out           : out ForwardingType 
@@ -67,6 +68,8 @@ architecture Behavioral of RISCV_CPU is
     signal WB               : WB_Type                       := EMPTY_WB_Type;
 
     signal stall            : numStall                      := STALL_NONE;
+    signal ID_reg           : reg_Type                      := EMPTY_reg_Type;
+    signal EX_reg           : reg_Type                      := EMPTY_reg_Type;
     
 begin
 
@@ -91,6 +94,7 @@ begin
         MEM_WB          => MEM_WB,
         WB              => WB,
         ID              => ID, 
+        reg_out         => ID_reg,
         Forward_A       => ForwardA,
         Forward_B       => ForwardB,
         stall           => stall
@@ -105,7 +109,18 @@ begin
         ID_EX           => ID_EX
     );
     
+    FWD : entity work.Forwarding port map (
+        EX_MEM          => EX_MEM,
+        WB              => WB,
+        ID_EX           => ID_EX,
+        ForwardA        => ForwardA,
+        ForwardB        => ForwardB,
+        reg_in          => ID_reg,
+        reg_out         => EX_reg
+    );
+    
     EXECUTION : entity work.EX_STAGE port map (
+        reg             => EX_reg,
         ID_EX           => ID_EX,
         EX              => EX   
     );
@@ -149,6 +164,7 @@ begin
     EX_MEM_STAGE_out       <= EX_MEM_STAGE;
     MEM_WB_STAGE_out       <= MEM_WB_STAGE;
     ID_EX_out              <= ID_EX;
+    reg_out                <= ID_reg;
     EX_MEM_out             <= EX_MEM;
     MEM_WB_out             <= MEM_WB;
     WB_out                 <= WB;

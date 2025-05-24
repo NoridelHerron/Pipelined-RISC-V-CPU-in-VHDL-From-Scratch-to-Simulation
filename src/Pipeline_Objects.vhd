@@ -42,6 +42,11 @@ package Pipeline_Types is
         STALL_EX_MEM  -- "10"
         );
 
+    type reg_Type is record
+        reg_data1   : std_logic_vector(DATA_WIDTH-1 downto 0);      -- register source 1 value
+        reg_data2   : std_logic_vector(DATA_WIDTH-1 downto 0);      -- register source 2 value
+    end record;
+
     type PipelineStages_Inst_PC is record
         instr       : std_logic_vector(DATA_WIDTH-1 downto 0);      -- instructions
         pc          : std_logic_vector(DATA_WIDTH-1 downto 0);      -- program counter
@@ -50,21 +55,23 @@ package Pipeline_Types is
     type ID_EX_Type is record
         op          : std_logic_vector(OPCODE_WIDTH-1 downto 0);    -- opcode  
         funct3      : std_logic_vector(FUNCT3_WIDTH-1 downto 0);    -- type of operation
-        funct7      : std_logic_vector(FUNCT7_WIDTH-1 downto 0);    -- type of operation under funct3
-        reg_data1   : std_logic_vector(DATA_WIDTH-1 downto 0);      -- register source 1 value
-        reg_data2   : std_logic_vector(DATA_WIDTH-1 downto 0);      -- register source 2 value
+        funct7      : std_logic_vector(FUNCT7_WIDTH-1 downto 0);    -- type of operation under funct3 
         store_rs2   : std_logic_vector(DATA_WIDTH-1 downto 0);      -- for store 
         rs1         : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);  -- register source 1
 	    rs2         : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);  -- register source 2
         rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);  -- register destination
+        S_imm       : std_logic_vector(IMM_WIDTH-1 downto 0); 
+        I_imm       : std_logic_vector(IMM_WIDTH-1 downto 0); 
         reg_write   : std_logic;
         mem_read    : std_logic;
         mem_write   : std_logic;
     end record;
     
     type EX_MEM_Type is record
-        flags       : std_logic_vector(FLAG_WIDTH-1 downto 0);      -- ZVNC Flags
+        reg_data1   : std_logic_vector(DATA_WIDTH-1 downto 0);      -- register source 1 value
+        reg_data2   : std_logic_vector(DATA_WIDTH-1 downto 0);      -- register source 2 value
         result      : std_logic_vector(DATA_WIDTH-1 downto 0);      -- ALU result
+        flags       : std_logic_vector(FLAG_WIDTH-1 downto 0);      -- ZVNC Flags
         op          : std_logic_vector(OPCODE_WIDTH-1 downto 0);    -- opcode  
         rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);  -- register destination
         store_rs2   : std_logic_vector(DATA_WIDTH-1 downto 0);      -- for store 
@@ -98,21 +105,23 @@ package Pipeline_Types is
     constant EMPTY_ID_EX_Type : ID_EX_Type := (
         op          => (others => '0'),
         funct3      => (others => '0'),
-        funct7      => (others => '0'),
-        reg_data1   => (others => '0'),
-        reg_data2   => (others => '0'),
+        funct7      => (others => '0'),  
         store_rs2   => (others => '0'),
         rs1         => (others => '0'),
         rs2         => (others => '0'),
         rd          => (others => '0'),
+        S_imm       => (others => '0'),
+        I_imm       => (others => '0'),
         reg_write   => '0',
         mem_read    => '0',
         mem_write   => '0'
     );
     
     constant EMPTY_EX_MEM_Type : EX_MEM_Type := (
-        flags       => (others => '0'),
+        reg_data1   => (others => '0'),
+        reg_data2   => (others => '0'),
         result      => (others => '0'),
+        flags       => (others => '0'),  
         op          => (others => '0'),
         rd          => (others => '0'),
         store_rs2   => (others => '0'),
@@ -137,5 +146,10 @@ package Pipeline_Types is
         rd          => (others => '0')
     );
     
-end package;
+    constant EMPTY_reg_Type : reg_Type := (
+        reg_data1   => (others => '0'),
+        reg_data2   => (others => '0')
+    );
 
+    
+end package;

@@ -19,6 +19,7 @@ entity DECODER is
             MEM_WB          : in  MEM_WB_Type;
             WB              : in  WB_Type; 
             ID              : out ID_EX_Type; 
+            reg_out         : out reg_Type;
             Forward_A       : out ForwardingType; 
             Forward_B       : out ForwardingType; 
             stall           : out numStall
@@ -30,8 +31,7 @@ architecture behavior of DECODER is
 signal ID_reg    : ID_EX_Type                                    := EMPTY_ID_EX_Type;
 signal ForwardA  : ForwardingType                                := FORWARD_NONE;
 signal ForwardB  : ForwardingType                                := FORWARD_NONE;
-signal reg_data1 : std_logic_vector(DATA_WIDTH - 1 downto 0)     := (others => '0');
-signal reg_data2 : std_logic_vector(DATA_WIDTH - 1 downto 0)     := (others => '0');
+signal reg       : reg_Type                                      := EMPTY_reg_Type;
 signal rs1_addr  : std_logic_vector(REG_ADDR_WIDTH - 1 downto 0) := (others => '0');
 signal rs2_addr  : std_logic_vector(REG_ADDR_WIDTH - 1 downto 0) := (others => '0');
  
@@ -44,8 +44,8 @@ begin
                    write_data     => WB.data, 
                    read_addr1     => rs1_addr, 
                    read_addr2     => rs2_addr, 
-                   read_data1     => reg_data1, 
-                   read_data2     => reg_data2
+                   read_data1     => reg.reg_data1, 
+                   read_data2     => reg.reg_data2
                    );  
     process (IF_ID_STAGE, EX_MEM, MEM_WB, WB)
     variable ID_temp        : ID_EX_Type            := EMPTY_ID_EX_Type;   
@@ -57,6 +57,8 @@ begin
         ID_temp.funct3   := IF_ID_STAGE.instr(14 downto 12);
         ID_temp.rd       := IF_ID_STAGE.instr(11 downto 7);
         ID_temp.op       := IF_ID_STAGE.instr(6 downto 0);
+        ID_temp.I_imm    := ID_temp.funct7 & ID_temp.rs2;
+        ID_temp.S_imm    := ID_temp.funct7 & ID_temp.rd;
 
         ID_temp.store_rs2 := (others => '0');
         -- Control signal defaults
@@ -92,83 +94,21 @@ begin
         end if;
     end if;
     
-    if ENABLE_FORWARDING then
-    
-         -- FORWARD_A
-        case ForwardA is
-            when FORWARD_NONE =>
-                ID_temp.reg_data1 := reg_data1;
-        
-            when FORWARD_EX_MEM =>
-                ID_temp.reg_data1 := EX_MEM.result;
-        
-            when FORWARD_MEM_WB =>
-                ID_temp.reg_data1 := WB.data;         
-        
-            when others =>
-                ID_temp.reg_data1 := (others => '0');
-        end case;
-        
-        -- FORWARD_B
-        case ForwardB is
-            when FORWARD_NONE =>
-                case ID_temp.op is
-                    when R_TYPE => -- R-type: use second register value
-                        ID_temp.reg_data2 := reg_data2;
-                        
-                    when I_IMME =>  -- I-type: immediate is in bits [31:20], sign-extended 
-                        ID_temp.reg_data2 := std_logic_vector(resize(signed(ID_temp.funct7 & ID_temp.rs2), 32)); 
-                        
-                    when LOAD =>  -- I-type: immediate is in bits [31:20], sign-extended 
-                        ID_temp.reg_data2 := std_logic_vector(resize(signed(ID_temp.funct7 & ID_temp.rs2), 32));
-                        ID_temp.mem_read  := '1';
-                        
-                    when S_TYPE => -- S-type: immediate is split across [31:25] and [11:7], sign-extended
-                        ID_temp.reg_data2 := std_logic_vector(resize(signed(ID_temp.funct7 & ID_temp.rd), 32));
-                        ID.store_rs2  <= reg_data2;
-                        ID_temp.mem_write  := '1';
-                        
-                    when others => 
-                        ID_temp.reg_data2 := (others => '0');  
-                end case;
-            when FORWARD_EX_MEM => -- from MEM_WB stage
-                ID_temp.reg_data2 := EX_MEM.result;
-                
-            when FORWARD_MEM_WB => -- from EX_MEM stage
-                ID_temp.reg_data2 := WB.data;    
-            when others => 
-                ID_temp.reg_data2 := (others => '0');
-        end case;
-        
-    else
-        ID_temp.reg_data1 := reg_data1;
-        case ID_temp.op is
-            when R_TYPE => -- R-type: use second register value
-                ID_temp.reg_data2 := reg_data2;
-                
-            when I_IMME =>  -- I-type: immediate is in bits [31:20], sign-extended 
-                ID_temp.reg_data2 := std_logic_vector(resize(signed(ID_temp.funct7 & ID_temp.rs2), 32));
-                
-            when LOAD =>  -- I-type: immediate is in bits [31:20], sign-extended 
-                ID_temp.reg_data2 := std_logic_vector(resize(signed(ID_temp.funct7 & ID_temp.rs2), 32));
-                ID_temp.mem_read := '1';
-                
-            when S_TYPE => -- S-type: immediate is split across [31:25] and [11:7], sign-extended
-                ID_temp.reg_data2  := std_logic_vector(resize(signed(ID_temp.funct7 & ID_temp.rd), 32));
-                ID_temp.store_rs2  := reg_data2;
-                ID_temp.mem_write  := '1';
-                ID_temp.reg_write  := '0';
-                
-            when others => 
-                ID_temp.reg_data2 := (others => '0');
-        end case;
+    if ID_temp.op = LOAD then 
+        ID_temp.mem_read := '1';
+    end if;
+
+    if ID_temp.op = S_TYPE then 
+        ID_temp.mem_write := '0';
+        ID_temp.store_rs2 := ID_temp.store_rs2;
     end if;   
+
     rs1_addr        <= ID_temp.rs1;
     rs2_addr        <= ID_temp.rs2;
     ID.rs1          <= ID_temp.rs1;
     ID.rs2          <= ID_temp.rs2;
-    ID.reg_data1    <= ID_temp.reg_data1;
-    ID.reg_data2    <= ID_temp.reg_data2;
+    reg_out.reg_data1    <= reg.reg_data1;
+    reg_out.reg_data2    <= reg.reg_data2;
     ID.store_rs2    <= ID_temp.store_rs2;
     ID.op           <= ID_temp.op;
     ID.funct3       <= ID_temp.funct3;
@@ -177,6 +117,8 @@ begin
     ID.reg_write    <= ID_temp.reg_write;
     ID.mem_read     <= ID_temp.mem_read;
     ID.mem_write    <= ID_temp.mem_write;
+    ID.I_imm        <= ID_temp.I_imm;
+    ID.S_imm        <= ID_temp.S_imm;
     Forward_A       <= ForwardA;
     Forward_B       <= ForwardB;
     end process;
