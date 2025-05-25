@@ -1,8 +1,6 @@
 ----------------------------------------------------------------------------------
 -- Noridel Herron
 -- Basic Instruction Fetch (IF) Stage
--- No branch, flush, or stall handling
--- PC increments by 4 each cycle
 ----------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
@@ -10,7 +8,8 @@ use IEEE.NUMERIC_STD.ALL;
 use work.Pipeline_Types.all;
 
 entity IF_STA is
-    Port ( clk             : in  std_logic; 
+    Port ( 
+           clk             : in  std_logic; 
            reset           : in  std_logic;                           
            IF_STAGE        : out PipelineStages_Inst_PC
          ); 
@@ -34,8 +33,7 @@ architecture behavior of IF_STA is
     end process;
     
     -- Get the instruction from memory
-    MEM : entity work.INST_MEM
-        port map (
+    MEM : entity work.INST_MEM port map (
             clk   => clk,
             reset => reset,
             addr  => temp_reg.pc, 

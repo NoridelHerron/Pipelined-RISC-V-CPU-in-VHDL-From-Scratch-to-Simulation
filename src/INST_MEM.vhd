@@ -25,11 +25,11 @@ use work.Pipeline_Types.all;
 
 entity INST_MEM is
     Port (
-        clk    : in  std_logic; 
-        reset  : in  std_logic;  -- added reset input
-        addr   : in  std_logic_vector(31 downto 0);  -- byte address input
-        instr  : out std_logic_vector(31 downto 0)   -- instruction output
-    );
+            clk    : in  std_logic; 
+            reset  : in  std_logic;  -- added reset input
+            addr   : in  std_logic_vector(31 downto 0);  -- byte address input
+            instr  : out std_logic_vector(31 downto 0)   -- instruction output
+        );
 end INST_MEM;
 
 architecture read_only of INST_MEM is

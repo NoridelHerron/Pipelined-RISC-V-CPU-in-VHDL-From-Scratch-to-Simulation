@@ -28,20 +28,20 @@ use work.Pipeline_Types.all;
 entity RISCV_CPU is
     Port (  clk                    : in std_logic;
             reset                  : in std_logic;
-            -- IF
+            -- pc and instruction
             IF_STAGE_out           : out PipelineStages_Inst_PC; 
-            IF_ID_STAGE_out        : out PipelineStages_Inst_PC;
-            ID_EX_STAGE_out        : out PipelineStages_Inst_PC;
-            EX_MEM_STAGE_out       : out PipelineStages_Inst_PC;
-            MEM_WB_STAGE_out       : out PipelineStages_Inst_PC;
-            ID_out                 : out ID_EX_Type;
+            ID_STAGE_out        : out PipelineStages_Inst_PC;
+            EX_STAGE_out        : out PipelineStages_Inst_PC;
+            MEM_STAGE_out       : out PipelineStages_Inst_PC;
+            WB_STAGE_out       : out PipelineStages_Inst_PC;
+            -- stage/registers
             ID_EX_out              : out ID_EX_Type;
-            EX_out                 : out EX_MEM_Type;
-            EX_MEM_out             : out EX_MEM_Type;
-            MEM_out                : out MEM_WB_Type;
+            EX_MEM_out             : out EX_MEM_Type;   
             MEM_WB_out             : out MEM_WB_Type;
             WB_out                 : out WB_Type; 
+            -- register source value
             reg_out                : out reg_Type;  
+            -- data hazard solutions
             num_stall              : out numStall;
             ForwardA_out           : out ForwardingType;
             ForwardB_out           : out ForwardingType 
@@ -50,15 +50,19 @@ end RISCV_CPU;
 
 architecture Behavioral of RISCV_CPU is
 
+    -- data hazard handlers
     signal ForwardA         : ForwardingType                := FORWARD_NONE;
     signal ForwardB         : ForwardingType                := FORWARD_NONE;
+    signal stall            : numStall                      := STALL_NONE;
     
+    -- pc and instruction
     signal IF_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc; 
-    signal IF_ID_STAGE      : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal ID_EX_STAGE      : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal EX_MEM_STAGE     : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal MEM_WB_STAGE     : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal ID_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal EX_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal MEM_STAGE        : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal WB_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
  
+    -- stage and in-between stages registers
     signal ID               : ID_EX_Type                    := EMPTY_ID_EX_Type;
     signal ID_EX            : ID_EX_Type                    := EMPTY_ID_EX_Type;  
     signal EX               : EX_MEM_Type                   := EMPTY_EX_MEM_Type;
@@ -66,9 +70,10 @@ architecture Behavioral of RISCV_CPU is
     signal MEM              : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
     signal MEM_WB           : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
     signal WB               : WB_Type                       := EMPTY_WB_Type;
-
-    signal stall            : numStall                      := STALL_NONE;
+    
+    -- register data value from the register source 
     signal ID_reg           : reg_Type                      := EMPTY_reg_Type;
+    -- data value from either register source or value forwarded
     signal EX_reg           : reg_Type                      := EMPTY_reg_Type;
     
 begin
@@ -83,13 +88,13 @@ begin
         clk             => clk,
         reset           => reset,
         IF_STAGE        => IF_STAGE,
-        IF_ID_STAGE     => IF_ID_STAGE        
+        IF_ID_STAGE     => ID_STAGE        
     );
     
     DECODE : entity work.DECODER port map (
         clk             => clk,
         reset           => reset,
-        IF_ID_STAGE     => IF_ID_STAGE,
+        IF_ID_STAGE     => ID_STAGE,
         EX_MEM          => EX_MEM,
         MEM_WB          => MEM_WB,
         WB              => WB,
@@ -103,9 +108,9 @@ begin
     ID_TO_EX_STAGE : entity work.ID_TO_EX port map (
         clk             => clk,
         reset           => reset,
-        ID_STAGE        => IF_ID_STAGE,
+        ID_STAGE        => ID_STAGE,
         ID              => ID,
-        ID_EX_STAGE     => ID_EX_STAGE,
+        ID_EX_STAGE     => EX_STAGE,
         ID_EX           => ID_EX
     );
     
@@ -128,9 +133,9 @@ begin
     EX_TO_MEM_STAGE : entity work.EX_TO_MEM port map (
         clk             => clk,
         reset           => reset,
-        EX_STAGE        => ID_EX_STAGE,
+        EX_STAGE        => EX_STAGE,
         EX              => EX, 
-        EX_MEM_STAGE    => EX_MEM_STAGE,
+        EX_MEM_STAGE    => MEM_STAGE,
         EX_MEM          => EX_MEM
     );
     
@@ -138,7 +143,6 @@ begin
         clk             => clk,
         reset           => reset,
         EX_MEM          => EX_MEM,
-        -- Outputs to MEM/WB pipeline register
         MEM             => MEM 
     );
     
@@ -147,9 +151,9 @@ begin
         reset           => reset,
         EX_MEM          => EX_MEM,
         MEM             => MEM,
-        EX_MEM_STAGE    => EX_MEM_STAGE,
+        EX_MEM_STAGE    => MEM_STAGE,
         MEM_WB          => MEM_WB,
-        MEM_WB_STAGE    => MEM_WB_STAGE
+        MEM_WB_STAGE    => WB_STAGE
     );
     
     WB_ST : entity work.WB_STA port map (
@@ -157,20 +161,19 @@ begin
         WB              => WB
     );
     
-    -- Assign output for the CPU
-    IF_STAGE_out           <= IF_STAGE;
-    IF_ID_STAGE_out        <= IF_ID_STAGE;
-    ID_EX_STAGE_out        <= ID_EX_STAGE;
-    EX_MEM_STAGE_out       <= EX_MEM_STAGE;
-    MEM_WB_STAGE_out       <= MEM_WB_STAGE;
-    ID_EX_out              <= ID_EX;
-    reg_out                <= ID_reg;
-    EX_MEM_out             <= EX_MEM;
-    MEM_WB_out             <= MEM_WB;
-    WB_out                 <= WB;
-    num_stall              <= stall;
-    ForwardA_out           <= ForwardA;
-    ForwardB_out           <= ForwardB;
-    
+    -- Assign output
+    IF_STAGE_out        <= IF_STAGE;
+    ID_STAGE_out        <= ID_STAGE;
+    EX_STAGE_out        <= EX_STAGE;
+    MEM_STAGE_out       <= MEM_STAGE;
+    WB_STAGE_out        <= WB_STAGE;
+    ID_EX_out           <= ID_EX;
+    reg_out             <= ID_reg;
+    EX_MEM_out          <= EX_MEM;
+    MEM_WB_out          <= MEM_WB;
+    WB_out              <= WB;
+    num_stall           <= stall;
+    ForwardA_out        <= ForwardA;
+    ForwardB_out        <= ForwardB;
 
 end Behavioral;
