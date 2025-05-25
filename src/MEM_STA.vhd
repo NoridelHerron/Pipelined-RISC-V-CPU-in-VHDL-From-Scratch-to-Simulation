@@ -16,7 +16,6 @@ end MEM_STA;
 
 architecture Behavioral of MEM_STA is
 
-signal MEM_reg        : MEM_WB_Type                                 := EMPTY_MEM_WB_Type;
 signal mem_address    : std_logic_vector(LOG2DEPTH - 1 downto 0)    := (others => '0');
 
 begin
@@ -32,8 +31,7 @@ begin
                     mem_write   => EX_MEM.mem_write,
                     address     => mem_address,
                     write_data  => EX_MEM.store_rs2,
-                    read_data   => MEM_reg.mem_result
+                    read_data   => MEM.mem_result
                 );
    
-    MEM  <= MEM_reg;  
 end Behavioral;

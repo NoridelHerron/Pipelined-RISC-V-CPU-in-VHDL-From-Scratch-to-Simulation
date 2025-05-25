@@ -16,43 +16,48 @@ architecture sim of tb_CPU_RISCV is
     
     constant CLK_PERIOD : time := 10 ns;
     
-    signal clk                  : std_logic := '0';
+    signal clk              : std_logic := '0';
     signal reset                : std_logic := '1';
 
+    -- Forwading
     signal ForwardA         : ForwardingType                := FORWARD_NONE;
     signal ForwardB         : ForwardingType                := FORWARD_NONE;
     
+    -- Inserting NOP's
+    signal stall            : numStall                      := STALL_NONE;
+    
+    -- pc and instruction
     signal IF_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal IF_ID_STAGE      : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal ID_EX_STAGE      : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal EX_MEM_STAGE     : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal MEM_WB_STAGE     : PipelineStages_Inst_PC        := EMPTY_inst_pc;
- 
+    signal ID_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal EX_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal MEM_STAGE        : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal WB_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    
+    -- registers output between stages
     signal ID_EX            : ID_EX_Type                    := EMPTY_ID_EX_Type;  
     signal ID_reg           : reg_Type                      := EMPTY_reg_Type;
     signal EX_MEM           : EX_MEM_Type                   := EMPTY_EX_MEM_Type; 
     signal MEM_WB           : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
     signal WB               : WB_Type                       := EMPTY_WB_Type;
-
-    signal stall            : numStall                      := STALL_NONE;
    
 begin
     DUT: entity work.RISCV_CPU
-        Port map (  clk                    => clk,
-                    reset                  => reset,             
-                    IF_STAGE_out           => IF_STAGE,
-                    IF_ID_STAGE_out        => IF_ID_STAGE,
-                    ID_EX_STAGE_out        => ID_EX_STAGE,
-                    EX_MEM_STAGE_out       => EX_MEM_STAGE,
-                    MEM_WB_STAGE_out       => MEM_WB_STAGE,      
-                    ID_EX_out              => ID_EX,
-                    EX_MEM_out             => EX_MEM,
-                    MEM_WB_out             => MEM_WB,
-                    WB_out                 => WB,
-                    reg_out                => ID_reg,
-                    num_stall              => stall,
-                    ForwardA_out           => ForwardA,
-                    ForwardB_out           => ForwardB
+        Port map (  
+                    clk                 => clk,
+                    reset               => reset,             
+                    IF_STAGE_out        => IF_STAGE,
+                    ID_STAGE_out        => ID_STAGE,
+                    EX_STAGE_out        => EX_STAGE,
+                    MEM_STAGE_out       => MEM_STAGE,
+                    WB_STAGE_out        => WB_STAGE,      
+                    ID_EX_out           => ID_EX,
+                    EX_MEM_out          => EX_MEM,
+                    MEM_WB_out          => MEM_WB,
+                    WB_out              => WB,
+                    reg_out             => ID_reg,
+                    num_stall           => stall,
+                    ForwardA_out        => ForwardA,
+                    ForwardB_out        => ForwardB
                  );
     
     clk_process : process
@@ -72,21 +77,21 @@ begin
         wait;
     end process;
     
-    process(ForwardA)
-    variable haz_MEM_WB_A : integer := 0;
+    process(ForwardB)
+    variable haz_MEM_WB_B : integer := 0;
     begin
-        if ForwardA = FORWARD_MEM_WB then
-            haz_MEM_WB_A := haz_MEM_WB_A + 1;
-            report " Expected Hazard: ForwardA = FORWARD_MEM_WB | rs2 = " & to_hexstring(MEM_WB.rd);
+        if ForwardB = FORWARD_MEM_WB then
+            haz_MEM_WB_B := haz_MEM_WB_B + 1;
+            report " Expected Hazard: ForwardB = FORWARD_MEM_WB | rs2 = " & to_hexstring(MEM_WB.rd);
         elsif ForwardA = FORWARD_EX_MEM then
-            haz_MEM_WB_A := haz_MEM_WB_A + 1;
-            report " Expected Hazard: ForwardA = FORWARD_EX_MEM | rs2 = " & to_hexstring(EX_MEM.rd);
+            haz_MEM_WB_B := haz_MEM_WB_B + 1;
+            report " Expected Hazard: ForwardB = FORWARD_EX_MEM | rs2 = " & to_hexstring(EX_MEM.rd);
         end if;
     
         -- Print summary at end of simulation
         if now >= 4999 ns then
             report "========== Forwarding Test Summary ==========";
-            report "ForwardB from EX_MEM (rs2 hazards): " & integer'image(haz_MEM_WB_A);
+            report "ForwardB from EX_MEM (rs2 hazards): " & integer'image(haz_MEM_WB_B);
             report "============================================";
         end if;
     end process;

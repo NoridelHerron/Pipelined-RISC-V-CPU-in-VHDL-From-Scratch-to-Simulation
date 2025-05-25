@@ -8,9 +8,6 @@ use IEEE.NUMERIC_STD.ALL;
 use work.Pipeline_Types.all;
 
 entity DECODER is
-    Generic( REG_ADDR_WIDTH : natural    := REG_ADDR_WIDTH;
-             DATA_WIDTH     : natural    := DATA_WIDTH
-            );
     Port (  -- inputs
             clk             : in  std_logic; 
             reset           : in  std_logic;  -- added reset input
@@ -60,66 +57,66 @@ begin
         ID_temp.I_imm    := ID_temp.funct7 & ID_temp.rs2;
         ID_temp.S_imm    := ID_temp.funct7 & ID_temp.rd;
 
-        ID_temp.store_rs2 := (others => '0');
-        -- Control signal defaults
+        -- defaults
+        ID_temp.store_rs2 := (others => '0'); 
         ID_temp.mem_write := '0';
         ID_temp.mem_read  := '0';
         ID_temp.reg_write := '1';
   
         
-    if ENABLE_FORWARDING then     
-        if EX_MEM.reg_write = '1' and EX_MEM.rd /= "00000" and EX_MEM.rd = rs1_addr then
-            ForwardA <= FORWARD_EX_MEM;                     
-        elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= "00000" and MEM_WB.rd = rs1_addr then
-            ForwardA <= FORWARD_MEM_WB;
+        if ENABLE_FORWARDING then     
+            if EX_MEM.reg_write = '1' and EX_MEM.rd /= "00000" and EX_MEM.rd = rs1_addr then
+                ForwardA <= FORWARD_EX_MEM;                     
+            elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= "00000" and MEM_WB.rd = rs1_addr then
+                ForwardA <= FORWARD_MEM_WB;
+            else
+                ForwardA <= FORWARD_NONE; 
+            end if;
+            
+            if EX_MEM.reg_write = '1' and EX_MEM.rd /= "00000" and EX_MEM.rd = rs2_addr then
+                ForwardB <= FORWARD_EX_MEM;        
+            elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= "00000" and MEM_WB.rd = rs2_addr then
+                ForwardB <= FORWARD_MEM_WB; 
+            else
+                ForwardB <= FORWARD_NONE;       
+            end if;
+    
         else
-            ForwardA <= FORWARD_NONE; 
+            if EX_MEM.reg_write = '1' and EX_MEM.rd /= "00000" and (EX_MEM.rd = ID_temp.rs1 or EX_MEM.rd = ID_temp.rs2) then
+               stall <= STALL_EX_MEM;
+            elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= "00000" and (MEM_WB.rd = ID_temp.rs1 or MEM_WB.rd = ID_temp.rs2) then
+               stall <= STALL_MEM_WB;
+            else
+               stall <= STALL_NONE;
+            end if;
         end if;
         
-        if EX_MEM.reg_write = '1' and EX_MEM.rd /= "00000" and EX_MEM.rd = rs2_addr then
-            ForwardB <= FORWARD_EX_MEM;        
-        elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= "00000" and MEM_WB.rd = rs2_addr then
-            ForwardB <= FORWARD_MEM_WB; 
-        else
-            ForwardB <= FORWARD_NONE;       
+        if ID_temp.op = LOAD then 
+            ID_temp.mem_read := '1';
         end if;
-
-    else
-        if EX_MEM.reg_write = '1' and EX_MEM.rd /= "00000" and (EX_MEM.rd = ID_temp.rs1 or EX_MEM.rd = ID_temp.rs2) then
-           stall <= STALL_EX_MEM;
-        elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= "00000" and (MEM_WB.rd = ID_temp.rs1 or MEM_WB.rd = ID_temp.rs2) then
-           stall <= STALL_MEM_WB;
-        else
-           stall <= STALL_NONE;
-        end if;
-    end if;
     
-    if ID_temp.op = LOAD then 
-        ID_temp.mem_read := '1';
-    end if;
-
-    if ID_temp.op = S_TYPE then 
-        ID_temp.mem_write := '0';
-        ID_temp.store_rs2 := ID_temp.store_rs2;
-    end if;   
-
-    rs1_addr        <= ID_temp.rs1;
-    rs2_addr        <= ID_temp.rs2;
-    ID.rs1          <= ID_temp.rs1;
-    ID.rs2          <= ID_temp.rs2;
-    reg_out.reg_data1    <= reg.reg_data1;
-    reg_out.reg_data2    <= reg.reg_data2;
-    ID.store_rs2    <= ID_temp.store_rs2;
-    ID.op           <= ID_temp.op;
-    ID.funct3       <= ID_temp.funct3;
-    ID.funct7       <= ID_temp.funct7;
-    ID.rd           <= ID_temp.rd;
-    ID.reg_write    <= ID_temp.reg_write;
-    ID.mem_read     <= ID_temp.mem_read;
-    ID.mem_write    <= ID_temp.mem_write;
-    ID.I_imm        <= ID_temp.I_imm;
-    ID.S_imm        <= ID_temp.S_imm;
-    Forward_A       <= ForwardA;
-    Forward_B       <= ForwardB;
+        if ID_temp.op = S_TYPE then 
+            ID_temp.mem_write := '0';
+            ID_temp.store_rs2 := ID_temp.store_rs2;
+        end if;   
+    
+        rs1_addr                <= ID_temp.rs1;
+        rs2_addr                <= ID_temp.rs2;
+        ID.rs1                  <= ID_temp.rs1;
+        ID.rs2                  <= ID_temp.rs2;
+        reg_out.reg_data1       <= reg.reg_data1;
+        reg_out.reg_data2       <= reg.reg_data2;
+        ID.store_rs2            <= ID_temp.store_rs2;
+        ID.op                   <= ID_temp.op;
+        ID.funct3               <= ID_temp.funct3;
+        ID.funct7               <= ID_temp.funct7;
+        ID.rd                   <= ID_temp.rd;
+        ID.reg_write            <= ID_temp.reg_write;
+        ID.mem_read             <= ID_temp.mem_read;
+        ID.mem_write            <= ID_temp.mem_write;
+        ID.I_imm                <= ID_temp.I_imm;
+        ID.S_imm                <= ID_temp.S_imm;
+        Forward_A               <= ForwardA;
+        Forward_B               <= ForwardB;
     end process;
 end behavior;

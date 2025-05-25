@@ -13,7 +13,6 @@ use IEEE.NUMERIC_STD.ALL;
 use work.Pipeline_Types.all;
 
 entity EX_STAGE is
-    Generic( FLAG_WIDTH  : natural    := FLAG_WIDTH );
     Port (
             reg         : in reg_Type;
             ID_EX       : in ID_EX_Type;
@@ -30,8 +29,7 @@ architecture behavior of EX_STAGE is
 begin
 
     -- ALU computation
-    alu_inst : entity work.ALU
-        port map (
+    alu_inst : entity work.ALU port map (
             A        => reg.reg_data1,
             B        => reg.reg_data2,
             Ci_Bi    => Ci_Bi,
@@ -43,6 +41,7 @@ begin
             C_flag   => EX_reg.flags(FLAG_WIDTH - 3),
             N_flag   => EX_reg.flags(FLAG_WIDTH - 4)
         );
+        
     EX.reg_data1  <= reg.reg_data1;
     EX.reg_data2  <= reg.reg_data2;
     EX.result     <= EX_reg.result;

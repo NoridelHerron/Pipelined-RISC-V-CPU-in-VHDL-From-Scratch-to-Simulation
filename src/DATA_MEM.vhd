@@ -36,12 +36,12 @@ entity DATA_MEM is
 			 LOG2DEPTH  : natural    := LOG2DEPTH
 			);
     Port(
-          clk        : in  std_logic; -- Clock input, used to trigger synchronous writes
-          mem_read   : in  std_logic; -- Control signal - if '1', read from memory
-          mem_write  : in  std_logic; -- Control signal - if '1', write to memory
-          address    : in  std_logic_vector(LOG2DEPTH - 1 downto 0); -- 10-bit address (1024 words)
-          write_data : in  std_logic_vector(DATA_WIDTH - 1 downto 0); -- 32-bit input - the data to write to memory
-          read_data  : out std_logic_vector(DATA_WIDTH - 1 downto 0) --  32-bit output - the data being read
+          clk        : in  std_logic;                                   -- Clock input, used to trigger synchronous writes
+          mem_read   : in  std_logic;                                   -- Control signal - if '1', read from memory
+          mem_write  : in  std_logic;                                   -- Control signal - if '1', write to memory
+          address    : in  std_logic_vector(LOG2DEPTH - 1 downto 0);    -- 10-bit address (1024 words)
+          write_data : in  std_logic_vector(DATA_WIDTH - 1 downto 0);   -- 32-bit input - the data to write to memory
+          read_data  : out std_logic_vector(DATA_WIDTH - 1 downto 0)    --  32-bit output - the data being read
          );
 end DATA_MEM;
 
