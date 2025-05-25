@@ -1,20 +1,24 @@
 # Pipelined-RISC-V-CPU-in-VHDL-From-Scratch-to-Simulation
-This project is a fully custom, 5-stage pipelined RISC-V CPU designed and implemented in VHDL. It was built from scratch, stage by stage, with modular structure and thorough testing. Each pipeline stage—IF, ID, EX, MEM, and WB—was verified independently to ensure signal correctness and data consistency.
+## This project is a fully custom, 5-stage pipelined RISC-V CPU built from the ground up in VHDL. 
+Each pipeline stage—Instruction Fetch (IF), Decode (ID), Execute (EX), Memory Access (MEM), and Write Back (WB)—was designed with a modular architecture and verified independently to ensure signal integrity and data flow consistency.
 
 ## Key features
 
 - 5-stage pipeline: IF, ID, EX, MEM, WB
-- ALU operations, load/store support, branching logic
+- ALU operations, load/store support
 - Word-aligned memory interface with internal DATA_MEM
 - Pipeline registers for each stage 
 - Register file write-back with control signal handling
-- Hazard-aware architecture, built for future extensions (e.g. forwarding, stalls)
-- Waveform-based simulation and debugging
+- Hazard-aware architecture, forwading. Built for future extensions (e.g.  stalls)
 - All design and testing done by me as a deep-dive into CPU architecture
 
 ## Pipeline Diagram
 
-**Note** Explore the repositories for each stage and review the documentation and waveforms for insight into the design and verification process.
+**Note** You’ll find earlier versions of each pipeline stage in the individual repositories. These earlier modules were initially hardcoded and included design assumptions I later realized were incorrect. Through full system integration, I restructured the design to follow correct pipeline flow and made the architecture scalable and modular.
+
+While some of that early logic has been revised, the documentation and waveforms still offer valuable insight into why certain flags or control signals were implemented the way they were at the time.
+
+
 - **IF_STAGE** https://github.com/NoridelHerron/INSTRUCTION_FETCH
 - **ROM** https://github.com/NoridelHerron/MEMORY_MODULE
 - **ID_STAGE** https://github.com/NoridelHerron/ID_STAGE
@@ -29,12 +33,34 @@ This project is a fully custom, 5-stage pipelined RISC-V CPU designed and implem
 **PIPELINE**/
 - images/
 - src/
+    - RISCV_CPU.vhd
+    - Pipeline_Objects.vhd
+    - IF_STA.vhd
+        - INST_MEM.vhd
+    - IF_TO_ID.vhd
+    - DECODER.vhd
+        - Register_File.vhd
+    - ID_TO_EX.vhd
+    - EX_STAGE.vhd
+        - ALU_32bits.vhd
+            - adder_32bits.vhd
+                - FullAdder.vhd
+            - sub_32bits.vhd
+                - FullSubtractor.vhd
+    - EX_TO_MEM.vhd
+    - MEM_STA.vhd
+        - DATA_MEM.vhd
+    - MEM_TO_WB.vhd
+    - WB_STA.vhd
+    - reusable_function.vhd
+    - reusable_func_def_.vhd
 - test_benches/
+    - tb_RISCV_CPU.vhd
 - .gitignore
 - README.md
 
-## 🧪 Testbench Strategy
-- Group by stage
+## 🧪 DEBUGGING Strategy
+- Integration debugging was guided primarily through waveform analysis, allowing cycle-accurate tracing of pipeline behavior, hazard resolution, and data forwarding.
 
 ## 📊 Simulation Results
 
