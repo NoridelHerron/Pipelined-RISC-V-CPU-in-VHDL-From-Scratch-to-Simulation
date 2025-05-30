@@ -9,11 +9,11 @@ Each pipeline stage—Instruction Fetch (IF), Decode (ID), Execute (EX), Memory 
 - Word-aligned memory interface with internal DATA_MEM
 - Pipeline registers for each stage 
 - Register file write-back with control signal handling
-- Hazard-aware architecture, forwading. Built for future extensions (e.g.  stalls)
+- Hazard-aware architecture (forwarding implemented; built for future extensions such as stalls)
 - All design and testing done by me as a deep-dive into CPU architecture
 
 ## Open Questions
-Design Question — Port Entry vs Internal Signal
+Design Questions — Port Entry vs Internal Signal
 
 As I was building my pipeline registers and debugging signal flow, I started wondering about the trade-offs between two design choices:
 
@@ -32,7 +32,7 @@ If anyone has insights or resources on this, I would love to learn! I’d like t
 
 **Note**: You’ll find earlier versions of each pipeline stage in the individual repositories. These earlier modules were initially hardcoded and included design assumptions I later realized were incorrect. Through full system integration, I restructured the design to follow correct pipeline flow and made the architecture scalable and modular.
 
-While some of that early logic has been revised, the documentation and waveforms still offer valuable insight into why certain flags were implemented the way they were at the time.
+Even though I’ve revised some of the early logic, the original documentation and waveforms still show why I implemented certain flags the way I did. You might also find the randomized testbenches helpful for testing your own designs.
 
 - **IF_STAGE** https://github.com/NoridelHerron/INSTRUCTION_FETCH
 - **ROM** https://github.com/NoridelHerron/MEMORY_MODULE
@@ -74,10 +74,37 @@ While some of that early logic has been revised, the documentation and waveforms
 - .gitignore
 - README.md
 
-## Decisions
+## Design Note:
+Once the project is complete, I plan to remove unnecessary signals from the record types in some of the stages. For now, I am keeping these extra signals to aid in debugging.
 
+I also made a design choice regarding component encapsulation. I tried to encapsulate most of the internal components of each stage (such as the register file, RAM, and ROM) within their corresponding stage modules. However, I intentionally placed the forwarding mux at the top level. This makes it easier for anyone reviewing the project to immediately see where the forwarding mux is placed, without needing to dig through multiple files.
 
-## 🧪 DEBUGGING Strategies
+I also considered the impact this design choice might have on testbench verification. Since I have already verified the ALU and EX stage with at least 5000 randomized test cases, I ensured that moving the forwarding mux to the top level did not affect the ALU’s calculation outputs. For other stages, this is less critical, as they are not central to the CPU’s core computation.
+
+## Design Note — Control Signals
+Instead of passing the full opcode through the pipeline, I generate compact control signals during instruction decode. This reduces the number of bits transferred between stages and simplifies control logic in later stages.
+
+While designing this, I considered whether to use:
+- a packed 2-bit control field, or
+- 3 individual control bits.
+
+At the moment, it looks like using a 2-bit field is more efficient, since combining 3 single bits would use more total bits overall. However, not all pipeline stages need all of the control signals, so I’m still evaluating the best structure.
+
+If anyone has recommendations or best practices for control signal encoding in pipelined CPU designs, I would love to learn from your experience!
+
+## Design Note — Forwarding Detection
+
+For forwarding detection, I compare the rs1_addr and rs2_addr of the current instruction with the destination register (rd) of instructions in later stages (e.g. ID_EX, EX_MEM).
+
+I am currently deciding whether to:
+- add more ports to expose these values directly, or
+- encapsulate them by passing the needed addresses through the pipeline registers (as part of the stage’s record).
+
+Based on what I’ve read, encapsulating the addresses within the pipeline registers seems like the cleaner and more scalable approach, since forwarding logic — and possibly other units — can then access them in a structured way.
+
+If anyone has experience or recommendations on best practices for structuring forwarding logic in pipelined CPUs, I would appreciate the feedback!
+
+## DEBUGGING Strategies
 
 ### Wave debugging
 
@@ -87,7 +114,7 @@ While some of that early logic has been revised, the documentation and waveforms
 
 ![PCs and Instructions](images/pc_instr.png) 
 **Where did I start?**
-    - I began by focusing on the Program Counter (PC) and the instruction being fetched (IF stage), starting at 25 ns.
+I began by focusing on the Program Counter (PC) and the instruction being fetched (IF stage), starting at 25 ns.
 I checked whether, as each instruction was fetched, the PC was incrementing by 4 as expected — meaning it was moving to the next instruction correctly.
 
 But it’s not enough to just check that the PC increments. I also needed to confirm that this happens in exactly **one cycle**. If it takes longer than one cycle, that’s a sign something is wrong and I would need to investigate further.
@@ -98,15 +125,15 @@ In this test:
     The first instruction entered the IF stage at 25 ns and completed the pipeline at 75 ns — meaning it took exactly **5 clock cycles** to pass through all 5 stages, as expected.
 
 Here’s how the pipeline filled:
-**Cycle 1**: Instruction 1 in IF
-**Cycle 2**: Instruction 1 in ID, Instruction 2 in IF
-**Cycle 3**: Instruction 1 in EX, Instruction 2 in ID, Instruction 3 in IF
-And so on — each instruction advances one stage per clock cycle.
+- **Cycle 1**: Instruction 1 in IF
+- **Cycle 2**: Instruction 1 in ID, Instruction 2 in IF
+- **Cycle 3**: Instruction 1 in EX, Instruction 2 in ID, Instruction 3 in IF
+- And so on — each instruction advances one stage per clock cycle.
     
 This confirmed that my pipeline was flowing correctly: no stages were skipped, and instructions advanced in a staggered manner through the pipeline.
 
 ![Register between IF and ID stage](images/IF_ID_reg.png) 
-**Next, How do I know if the decoding stage is doing its job and where to look.** 
+**How did I check if the Decode stage was doing its job, and where did I look?** 
     For the first instruction, I looked at 35 ns.
     At that point, you won’t see the decoded value yet — because it takes one full cycle for it to update. You’ll see the correct decoded value in the following cycle.
 
@@ -135,9 +162,12 @@ However, here is the general approach I used when testing individual modules:
 This method helped me debug module-level behavior even without fully using Tcl automation yet. I plan to expand this technique as I become more comfortable with pipeline-level debugging.
 
 ---
-## 💡 Key Learnings
-- Learned how to organized signals for wave debugging
----
+## What's next 
+Implement and test stalling, jump, and branch handling
+
+## Future exploration
+- Explore implementing a Von Neumann architecture CPU
+- Compare design trade-offs between my current pipeline and a Von Neumann model
 
 ## ▶️ How to Run
 
@@ -165,8 +195,18 @@ This is a personal academic project. Feedback and suggestions are welcome via Gi
 ---
 
 ## 📜 License
-MIT License
+This work is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
 
+You are free to:
+- Share — copy and redistribute the material in any medium or format
+- Adapt — remix, transform, and build upon the material
+
+Under the following terms:
+- Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made.
+- NonCommercial — You may not use the material for commercial purposes without explicit permission from the author.
+
+For commercial licensing inquiries, please contact: [noridel.herron@gmail.com]
+License details: https://creativecommons.org/licenses/by-nc/4.0/
 ---
 
 ## ⚠️ Disclaimer
