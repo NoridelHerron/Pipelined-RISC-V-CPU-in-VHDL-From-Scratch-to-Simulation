@@ -21,9 +21,9 @@ As I was building my pipeline registers and debugging signal flow, I started won
 - Option 2: Keep signals internal and connect them through internal logic
 
 Questions I’m still exploring:
-	-	From a design clarity and maintainability perspective, which approach scales better as the system grows?
-	-	From a hardware synthesis / resource cost perspective, does using ports introduce more overhead than using internal signals?
-	-	Are there any best practices or guidelines for when to prefer one over the other in pipeline register design?
+- From a design clarity and maintainability perspective, which approach scales better as the system grows?
+- From a hardware synthesis / resource cost perspective, does using ports introduce more overhead than using internal signals?
+- Are there any best practices or guidelines for when to prefer one over the other in pipeline register design?
 
 If anyone has insights or resources on this, I would love to learn! I’d like to apply better-informed decisions on my next project.
 
