@@ -37,11 +37,11 @@ architecture behavior of IF_STA is
             clk   => clk,
             reset => reset,
             addr  => temp_reg.pc, 
-            instr => temp_reg.instr
+            instr => IF_STAGE.instr
         );
   
     -- Output to decoder
-    IF_STAGE     <= temp_reg;
+    IF_STAGE.pc     <= temp_reg.pc;
       
 end behavior;
 
