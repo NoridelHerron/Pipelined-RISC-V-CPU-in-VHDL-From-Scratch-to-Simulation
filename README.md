@@ -94,15 +94,29 @@ If anyone has recommendations or best practices for control signal encoding in p
 
 ## Design Note — Forwarding Detection
 
-For forwarding detection, I compare the rs1_addr and rs2_addr of the current instruction with the destination register (rd) of instructions in later stages (e.g. EX_MEM, MEM_WB). rs1_addr and rs2_addr is equivalent to ID_EX.rs1 and ID_EX.rs2. 
+I placed the forwarding decision logic inside the Decoder stage because this is the earliest point in the pipeline where I can reliably determine if a hazard is present.
 
-I am currently deciding whether to:
-- add more ports to expose these values directly, or
-- encapsulate them by passing the needed addresses through the pipeline registers (as part of the stage’s record).
+At this stage, I am comparing rs1_addr (and similarly rs2_addr) because I’m currently considering how best to manage signal flow:
+	•	I debated whether to add additional port entries to pass values, or to use signals to minimize port complexity.
+	•	To reduce unnecessary port entries, I chose to work with rs1_addr, which is equivalent to ID_EX.rs1 in meaning.
+	•	I did not compare to ID.rs1, because this is an output value that cannot be used directly for comparison at this stage — instead, a signal must be used.
 
-Based on what I’ve read, encapsulating the addresses within the pipeline registers seems like the cleaner and more scalable approach, since forwarding logic — and possibly other units — can then access them in a structured way.
+For forwarding detection, I compare:
+	•	rs1_addr and rs2_addr of the current instruction
+with
+	•	rd (destination register) of instructions in later stages (e.g. EX_MEM, MEM_WB).
 
-If anyone has experience or recommendations on best practices for structuring forwarding logic in pipelined CPUs, I would appreciate the feedback!
+In my current implementation:
+	•	rs1_addr and rs2_addr are equivalent in purpose to ID_EX.rs1 and ID_EX.rs2.
+
+I am still considering two possible approaches for structuring this:
+
+✅ Option 1: Add more ports to expose these values directly
+✅ Option 2: Encapsulate them by passing the needed addresses through the pipeline registers (as part of the stage’s record structure)
+
+Based on what I’ve read so far, encapsulating the addresses within the pipeline registers seems like the cleaner and more scalable approach — since this allows the forwarding logic (and potentially other future units) to access the necessary information in a structured and modular way.
+
+If anyone has experience or best practices for structuring forwarding logic in pipelined CPUs, I would really appreciate any feedback or suggestions!
 
 ## DEBUGGING Strategies
 
