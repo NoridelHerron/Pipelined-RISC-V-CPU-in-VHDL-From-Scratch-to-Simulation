@@ -1,23 +1,6 @@
 ----------------------------------------------------------------------------------
 -- Noridel Herron
--- InstructionMemory.vhd
--- Created: 2025-05-20
---
--- Description:
---   Standalone instruction memory module for my personal 5-stage RISC-V pipeline.
---   Stores up to 256 32-bit instructions in a simple word-addressable ROM.
---   Returns the instruction corresponding to the input PC address (word-aligned).
---
--- Design Notes:
---   - Used for simulation and testbench development.
---   - Instructions are currently hardcoded for quick testing.
---   - Future version may support file loading or external memory access.
---
--- Personal Project:
---   This is part of my custom CPU design and pipeline experiment.
---   Not intended for distribution or production use.
 ----------------------------------------------------------------------------------
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
