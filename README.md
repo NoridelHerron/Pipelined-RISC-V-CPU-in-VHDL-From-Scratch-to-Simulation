@@ -94,7 +94,7 @@ If anyone has recommendations or best practices for control signal encoding in p
 
 ## Design Note — Forwarding Detection
 
-For forwarding detection, I compare the rs1_addr and rs2_addr of the current instruction with the destination register (rd) of instructions in later stages (e.g. ID_EX, EX_MEM).
+For forwarding detection, I compare the rs1_addr and rs2_addr of the current instruction with the destination register (rd) of instructions in later stages (e.g. EX_MEM, MEM_WB). rs1_addr and rs2_addr is equivalent to ID_EX.rs1 and ID_EX.rs2. 
 
 I am currently deciding whether to:
 - add more ports to expose these values directly, or
