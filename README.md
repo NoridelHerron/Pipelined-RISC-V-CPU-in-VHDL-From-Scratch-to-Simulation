@@ -94,29 +94,22 @@ If anyone has recommendations or best practices for control signal encoding in p
 
 ## Design Note — Forwarding Detection
 
-I placed the forwarding decision logic inside the Decoder stage because this is the earliest point in the pipeline where I can reliably determine if a hazard is present.
+I placed the forwarding decision logic inside the Decode stage because this is the earliest point where hazards can be detected — once the source registers (rs1_addr, rs2_addr) are known.
 
-At this stage, I am comparing rs1_addr (and similarly rs2_addr) because I’m currently considering how best to manage signal flow:
-	•	I debated whether to add additional port entries to pass values, or to use signals to minimize port complexity.
-	•	To reduce unnecessary port entries, I chose to work with rs1_addr, which is equivalent to ID_EX.rs1 in meaning.
-	•	I did not compare to ID.rs1, because this is an output value that cannot be used directly for comparison at this stage — instead, a signal must be used.
+To ensure correct pipeline timing, I pass the forwarding control signals (ForwardA, ForwardB) directly to the forwarding mux in the forwading.vhd— after the pipeline register between ID and EX.
+- This guarantees that when an instruction reaches the EX stage, the forwarding mux already has the correct control inputs.
+- This avoids any delay — the mux can select the correct ALU operands in the same cycle the instruction enters EX.
 
-For forwarding detection, I compare:
-	•	rs1_addr and rs2_addr of the current instruction
-with
-	•	rd (destination register) of instructions in later stages (e.g. EX_MEM, MEM_WB).
 
-In my current implementation:
-	•	rs1_addr and rs2_addr are equivalent in purpose to ID_EX.rs1 and ID_EX.rs2.
+For the hazard comparison:
+- I compare rs1_addr and rs2_addr of the current instruction in Decode with rd of instructions in later stages (EX_MEM, MEM_WB).
+- I chose to minimize port complexity by using internal signals (rs1_addr and rs2_addr), which are equivalent in meaning to ID_EX.rs1 and ID_EX.rs2.
 
-I am still considering two possible approaches for structuring this:
+I am still considering whether to:
+- add more ports to expose these values directly, or
+- encapsulate them by passing them through the pipeline records (which appears to be the cleaner, more scalable approach).
 
-✅ Option 1: Add more ports to expose these values directly
-✅ Option 2: Encapsulate them by passing the needed addresses through the pipeline registers (as part of the stage’s record structure)
-
-Based on what I’ve read so far, encapsulating the addresses within the pipeline registers seems like the cleaner and more scalable approach — since this allows the forwarding logic (and potentially other future units) to access the necessary information in a structured and modular way.
-
-If anyone has experience or best practices for structuring forwarding logic in pipelined CPUs, I would really appreciate any feedback or suggestions!
+If anyone has experience or best practices for structuring forwarding logic and signal flow in pipelined CPUs, I would love to hear your feedback!
 
 ## DEBUGGING Strategies
 
