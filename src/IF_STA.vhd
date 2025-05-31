@@ -49,4 +49,3 @@ architecture behavior of IF_STA is
     IF_STAGE.pc     <= temp_reg.pc;
       
 end behavior;
-

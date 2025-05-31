@@ -87,11 +87,11 @@ begin
     );
     
     HDU : entity work.Haz_det_unit port map (
-        ID              => ID,
+        IF_ID_STAGE     => ID_STAGE,
         ID_EX           => ID_EX,
         EX_MEM          => EX_MEM, 
         MEM_WB          => MEM_WB, 
-       -- stall_in        => stall,
+        stall_in        => stall,
         Forward         => Forward,
         stall_out       => stall 
     );
