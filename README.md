@@ -1,5 +1,5 @@
 # Pipelined-RISC-V-CPU-in-VHDL-From-Scratch-to-Simulation
-## This project is a fully custom, 5-stage pipelined RISC-V CPU built from the ground up in VHDL. 
+This project is a fully custom, 5-stage pipelined RISC-V CPU built from the ground up in VHDL. 
 Each pipeline stage—Instruction Fetch (IF), Decode (ID), Execute (EX), Memory Access (MEM), and Write Back (WB)—was designed with a modular architecture and verified independently to ensure signal integrity and data flow consistency.
 
 ## Key features
@@ -212,8 +212,6 @@ Under the following terms:
 - Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made.
 - NonCommercial — You may not use the material for commercial purposes without explicit permission from the author.
 
-For commercial licensing inquiries, please contact: [noridel.herron@gmail.com]
-License details: https://creativecommons.org/licenses/by-nc/4.0/
 ---
 
 ## ⚠️ Disclaimer
