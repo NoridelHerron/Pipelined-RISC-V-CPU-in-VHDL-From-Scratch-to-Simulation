@@ -1,5 +1,5 @@
 # Pipelined-RISC-V-CPU-in-VHDL-From-Scratch-to-Simulation
-## This project is a fully custom, 5-stage pipelined RISC-V CPU built from the ground up in VHDL. 
+This project is a fully custom, 5-stage pipelined RISC-V CPU built from the ground up in VHDL. 
 Each pipeline stage—Instruction Fetch (IF), Decode (ID), Execute (EX), Memory Access (MEM), and Write Back (WB)—was designed with a modular architecture and verified independently to ensure signal integrity and data flow consistency.
 
 ## Key features
@@ -94,15 +94,22 @@ If anyone has recommendations or best practices for control signal encoding in p
 
 ## Design Note — Forwarding Detection
 
-For forwarding detection, I compare the rs1_addr and rs2_addr of the current instruction with the destination register (rd) of instructions in later stages (e.g. ID_EX, EX_MEM).
+I placed the forwarding decision logic inside the Decode stage because this is the earliest point where hazards can be detected — once the source registers (rs1_addr, rs2_addr) are known.
 
-I am currently deciding whether to:
+To ensure correct pipeline timing, I pass the forwarding control signals (ForwardA, ForwardB) directly to the forwarding mux in the forwading.vhd— after the pipeline register between ID and EX.
+- This guarantees that when an instruction reaches the EX stage, the forwarding mux already has the correct control inputs.
+- This avoids any delay — the mux can select the correct ALU operands in the same cycle the instruction enters EX.
+
+
+For the hazard comparison:
+- I compare rs1_addr and rs2_addr of the current instruction in Decode with rd of instructions in later stages (EX_MEM, MEM_WB).
+- I chose to minimize port complexity by using internal signals (rs1_addr and rs2_addr), which are equivalent in meaning to ID_EX.rs1 and ID_EX.rs2.
+
+I am still considering whether to:
 - add more ports to expose these values directly, or
-- encapsulate them by passing the needed addresses through the pipeline registers (as part of the stage’s record).
+- encapsulate them by passing them through the pipeline records (which appears to be the cleaner, more scalable approach).
 
-Based on what I’ve read, encapsulating the addresses within the pipeline registers seems like the cleaner and more scalable approach, since forwarding logic — and possibly other units — can then access them in a structured way.
-
-If anyone has experience or recommendations on best practices for structuring forwarding logic in pipelined CPUs, I would appreciate the feedback!
+If anyone has experience or best practices for structuring forwarding logic and signal flow in pipelined CPUs, I would love to hear your feedback!
 
 ## DEBUGGING Strategies
 
@@ -196,6 +203,14 @@ This is a personal academic project. Feedback and suggestions are welcome via Gi
 
 ## 📜 License
 This work is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+
+You are free to:
+- Share — copy and redistribute the material in any medium or format
+- Adapt — remix, transform, and build upon the material
+
+Under the following terms:
+- Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made.
+- NonCommercial — You may not use the material for commercial purposes without explicit permission from the author.
 
 You are free to:
 - Share — copy and redistribute the material in any medium or format
