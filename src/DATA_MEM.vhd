@@ -1,27 +1,5 @@
 ----------------------------------------------------------------------------------
 -- Noridel Herron
--- DataMemory.vhd
--- 5/5/2025
---
--- Description:
--- 32-bit word-addressable data memory module for use in the MEM stage of a 
--- pipelined CPU. Supports synchronous write and asynchronous read operations.
--- Can hold 1024 words (4KB total). Read and write controlled via mem_read and 
--- mem_write signals. 
---
--- Interface:
---   clk        : System clock input
---   mem_read   : Enables reading from memory
---   mem_write  : Enables writing to memory
---   address    : 10-bit memory address (word-indexed)
---   write_data : 32-bit data to be written on write
---   read_data  : 32-bit output from memory on read
---
--- Notes:
--- - Write occurs on rising clock edge when mem_write = '1'.
--- - Read is combinational when mem_read = '1'.
--- - On mem_read = '0', output is zeroed.
---
 ----------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
@@ -57,18 +35,13 @@ begin
             if mem_write = '1' then               
                 mem(to_integer(unsigned(address))) <= write_data;
             end if;
+            
+            if mem_read = '1' then
+                read_data <= mem(to_integer(unsigned(address)));
+            else
+                read_data <= (others => '0');
+            end if;
         end if;
     end process;
 
-    process(mem_read, address, mem)
-    begin
-        
-        if mem_read = '1' then
-            read_data <= mem(to_integer(unsigned(address)));
-        else
-            read_data <= (others => '0');
-        end if;
-    end process;
-
-        
 end Behavioral;

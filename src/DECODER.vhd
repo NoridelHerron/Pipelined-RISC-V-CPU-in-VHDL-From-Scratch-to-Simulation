@@ -11,23 +11,16 @@ entity DECODER is
     Port (  -- inputs
             clk             : in  std_logic; 
             reset           : in  std_logic;  -- added reset input
-            IF_ID_STAGE     : in  PipelineStages_Inst_PC; 
-            EX_MEM          : in  EX_MEM_Type;
-            MEM_WB          : in  MEM_WB_Type;
+            IF_ID_STAGE     : in  PipelineStages_Inst_PC;   
             WB              : in  WB_Type; 
             ID              : out ID_EX_Type; 
-            reg_out         : out reg_Type;
-            Forward_A       : out ForwardingType; 
-            Forward_B       : out ForwardingType; 
-            stall           : out numStall
+            reg_out         : out reg_Type
         );
 end DECODER;
 
 architecture behavior of DECODER is
 
 signal ID_reg    : ID_EX_Type                                    := EMPTY_ID_EX_Type;
-signal ForwardA  : ForwardingType                                := FORWARD_NONE;
-signal ForwardB  : ForwardingType                                := FORWARD_NONE;
 signal reg       : reg_Type                                      := EMPTY_reg_Type;
 signal rs1_addr  : std_logic_vector(REG_ADDR_WIDTH - 1 downto 0) := (others => '0');
 signal rs2_addr  : std_logic_vector(REG_ADDR_WIDTH - 1 downto 0) := (others => '0');
@@ -44,7 +37,7 @@ begin
                    read_data1     => reg.reg_data1, 
                    read_data2     => reg.reg_data2
                    );  
-    process (IF_ID_STAGE, EX_MEM, MEM_WB, WB)
+    process (IF_ID_STAGE)
     variable ID_temp        : ID_EX_Type            := EMPTY_ID_EX_Type;   
     begin 
     
@@ -54,8 +47,6 @@ begin
         ID_temp.funct3   := IF_ID_STAGE.instr(14 downto 12);
         ID_temp.rd       := IF_ID_STAGE.instr(11 downto 7);
         ID_temp.op       := IF_ID_STAGE.instr(6 downto 0);
-        ID_temp.I_imm    := ID_temp.funct7 & ID_temp.rs2;
-        ID_temp.S_imm    := ID_temp.funct7 & ID_temp.rd;
 
         -- defaults
         ID_temp.store_rs2 := (others => '0'); 
@@ -63,34 +54,6 @@ begin
         ID_temp.mem_read  := '0';
         ID_temp.reg_write := '1';
   
-        
-        if ENABLE_FORWARDING then     
-            if EX_MEM.reg_write = '1' and EX_MEM.rd /= "00000" and EX_MEM.rd = rs1_addr then
-                ForwardA <= FORWARD_EX_MEM;                     
-            elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= "00000" and MEM_WB.rd = rs1_addr then
-                ForwardA <= FORWARD_MEM_WB;
-            else
-                ForwardA <= FORWARD_NONE; 
-            end if;
-            
-            if EX_MEM.reg_write = '1' and EX_MEM.rd /= "00000" and EX_MEM.rd = rs2_addr then
-                ForwardB <= FORWARD_EX_MEM;        
-            elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= "00000" and MEM_WB.rd = rs2_addr then
-                ForwardB <= FORWARD_MEM_WB; 
-            else
-                ForwardB <= FORWARD_NONE;       
-            end if;
-    
-        else
-            if EX_MEM.reg_write = '1' and EX_MEM.rd /= "00000" and (EX_MEM.rd = ID_temp.rs1 or EX_MEM.rd = ID_temp.rs2) then
-               stall <= STALL_EX_MEM;
-            elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= "00000" and (MEM_WB.rd = ID_temp.rs1 or MEM_WB.rd = ID_temp.rs2) then
-               stall <= STALL_MEM_WB;
-            else
-               stall <= STALL_NONE;
-            end if;
-        end if;
-        
         if ID_temp.op = LOAD then 
             ID_temp.mem_read := '1';
         end if;
@@ -114,9 +77,5 @@ begin
         ID.reg_write            <= ID_temp.reg_write;
         ID.mem_read             <= ID_temp.mem_read;
         ID.mem_write            <= ID_temp.mem_write;
-        ID.I_imm                <= ID_temp.I_imm;
-        ID.S_imm                <= ID_temp.S_imm;
-        Forward_A               <= ForwardA;
-        Forward_B               <= ForwardB;
     end process;
 end behavior;

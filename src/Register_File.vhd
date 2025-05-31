@@ -43,9 +43,7 @@ begin
     process(clk)
     begin
         if rising_edge(clk) then
-            if rst = '1' then
-                registers <= (others => (others => '0'));
-            elsif write_enable = '1' then
+            if write_enable = '1' then
                 if write_addr /= "00000" then  -- prevent writing to x0
                     registers(to_integer(unsigned(write_addr))) <= write_data;
                 end if;

@@ -13,6 +13,7 @@ entity IF_TO_ID is
     Port (
             clk             : in  std_logic; 
             reset           : in  std_logic;  
+            stall           : in  numStall;   
             IF_STAGE        : in  PipelineStages_Inst_PC;
             IF_ID_STAGE     : out PipelineStages_Inst_PC
           );
@@ -27,9 +28,14 @@ begin
         if reset = '1' then  
             IF_ID_STAGE_reg <= EMPTY_inst_pc;
         elsif rising_edge(clk) then
-            IF_ID_STAGE_reg <= IF_STAGE;
-        end if;    
+            if stall = STALL_NONE then
+                IF_ID_STAGE_reg <= IF_STAGE;  -- normal update
+            else
+                IF_ID_STAGE_reg <= IF_ID_STAGE_reg;  -- HOLD → prevents skip!!!
+            end if;
+        end if;
     end process;
+
 
     -- Drive the output port outside the process
     IF_ID_STAGE <= IF_ID_STAGE_reg;

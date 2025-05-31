@@ -17,27 +17,24 @@ architecture sim of tb_CPU_RISCV is
     constant CLK_PERIOD : time := 10 ns;
     
     signal clk              : std_logic := '0';
-    signal reset                : std_logic := '1';
+    signal reset            : std_logic := '1';
 
     -- Forwading
-    signal ForwardA         : ForwardingType                := FORWARD_NONE;
-    signal ForwardB         : ForwardingType                := FORWARD_NONE;
-    
+    signal Forward          : FORWARD                      := EMPTY_FORW_Type;
+
     -- Inserting NOP's
     signal stall            : numStall                      := STALL_NONE;
     
     -- pc and instruction
     signal IF_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
     signal ID_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal EX_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal MEM_STAGE        : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal WB_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    
-    -- registers output between stages
     signal ID_EX            : ID_EX_Type                    := EMPTY_ID_EX_Type;  
     signal ID_reg           : reg_Type                      := EMPTY_reg_Type;
+    signal EX_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
     signal EX_MEM           : EX_MEM_Type                   := EMPTY_EX_MEM_Type; 
+    signal MEM_STAGE        : PipelineStages_Inst_PC        := EMPTY_inst_pc;
     signal MEM_WB           : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
+    signal WB_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
     signal WB               : WB_Type                       := EMPTY_WB_Type;
    
 begin
@@ -56,8 +53,7 @@ begin
                     WB_out              => WB,
                     reg_out             => ID_reg,
                     num_stall           => stall,
-                    ForwardA_out        => ForwardA,
-                    ForwardB_out        => ForwardB
+                    Forward_out         => Forward    
                  );
     
     clk_process : process
@@ -76,26 +72,6 @@ begin
         reset <= '0';
         wait;
     end process;
-    
-    process(ForwardB)
-    variable haz_MEM_WB_B : integer := 0;
-    begin
-        if ForwardB = FORWARD_MEM_WB then
-            haz_MEM_WB_B := haz_MEM_WB_B + 1;
-            report " Expected Hazard: ForwardB = FORWARD_MEM_WB | rs2 = " & to_hexstring(MEM_WB.rd);
-        elsif ForwardA = FORWARD_EX_MEM then
-            haz_MEM_WB_B := haz_MEM_WB_B + 1;
-            report " Expected Hazard: ForwardB = FORWARD_EX_MEM | rs2 = " & to_hexstring(EX_MEM.rd);
-        end if;
-    
-        -- Print summary at end of simulation
-        if now >= 4999 ns then
-            report "========== Forwarding Test Summary ==========";
-            report "ForwardB from EX_MEM (rs2 hazards): " & integer'image(haz_MEM_WB_B);
-            report "============================================";
-        end if;
-    end process;
-    
 
     end_simulation : process
     begin

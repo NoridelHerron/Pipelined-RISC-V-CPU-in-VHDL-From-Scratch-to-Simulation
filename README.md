@@ -12,6 +12,10 @@ Each pipeline stage—Instruction Fetch (IF), Decode (ID), Execute (EX), Memory 
 - Hazard-aware architecture (forwarding implemented; built for future extensions such as stalls)
 - All design and testing done by me as a deep-dive into CPU architecture
 
+# Tool Usedd
+Vivado version 24.2
+Vivado XSim (Built-in simulator, used for VHDL simulation and waveform viewing)
+
 ## Open Questions
 Design Questions — Port Entry vs Internal Signal
 
@@ -112,6 +116,11 @@ I am still considering whether to:
 If anyone has experience or best practices for structuring forwarding logic and signal flow in pipelined CPUs, I would love to hear your feedback!
 
 ## DEBUGGING Strategies
+### Debugging note
+For debugging, you can organize signals in the testbench however you prefer — for example, moving signals into different waveform groups or adding trace logging.
+In this project, since I’m currently testing with only 4 instructions, I used a simpler debug method. However, for larger programs or full instruction sets, it is highly recommended to pass the PC and instruction fields through each pipeline stage and group them accordingly in the testbench and waveform viewer.
+
+This is why in my design, I pass PC and instruction through all stages — the main purpose is to support clear debugging and visibility at each stage, especially as the project scales.
 
 ### Wave debugging
 

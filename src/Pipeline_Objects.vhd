@@ -30,7 +30,7 @@ package Pipeline_Types is
     constant LOG2DEPTH      : integer := 2;
     constant IMM_WIDTH      : integer := 12;
     constant STALL_WIDTH    : integer := 2;
-    
+      
     -- Forwarding control type
     type ForwardingType is (
         FORWARD_NONE,       -- "00" 
@@ -39,10 +39,15 @@ package Pipeline_Types is
         );
         
     type numStall is (
-        STALL_NONE,    -- "00" 
+        STALL_NONE,     -- "00" 
         STALL_MEM_WB,   -- "01"
-        STALL_EX_MEM  -- "10"
+        STALL_EX_MEM    -- "10"
         );
+        
+    type FORWARD is record
+        A : ForwardingType;
+        B : ForwardingType;
+    end record;
 
     type reg_Type is record
         reg_data1   : std_logic_vector(DATA_WIDTH-1 downto 0);      -- register source 1 value
@@ -62,8 +67,6 @@ package Pipeline_Types is
         rs1         : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);  -- register source 1
 	    rs2         : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);  -- register source 2
         rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);  -- register destination
-        S_imm       : std_logic_vector(IMM_WIDTH-1 downto 0); 
-        I_imm       : std_logic_vector(IMM_WIDTH-1 downto 0); 
         reg_write   : std_logic;
         mem_read    : std_logic;
         mem_write   : std_logic;
@@ -97,7 +100,7 @@ package Pipeline_Types is
         data        : std_logic_vector(DATA_WIDTH-1 downto 0); 
         rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
     end record;
-    
+
     -- Initialize all to 0
     constant EMPTY_inst_pc : PipelineStages_Inst_PC := (
         instr       => (others => '0'),
@@ -111,9 +114,7 @@ package Pipeline_Types is
         store_rs2   => (others => '0'),
         rs1         => (others => '0'),
         rs2         => (others => '0'),
-        rd          => (others => '0'),
-        S_imm       => (others => '0'),
-        I_imm       => (others => '0'),
+        rd          => (others => '0'), 
         reg_write   => '0',
         mem_read    => '0',
         mem_write   => '0'
@@ -153,5 +154,14 @@ package Pipeline_Types is
         reg_data2   => (others => '0')
     );
 
+    constant EMPTY_FORW_Type : FORWARD := (
+        A   => FORWARD_NONE,
+        B   => FORWARD_NONE
+    );  
     
+    constant INSERT_NOP : PipelineStages_Inst_PC := (
+    pc    => (others => '0'),
+    instr => x"00000013"  -- Real NOP!
+    );
+
 end package;

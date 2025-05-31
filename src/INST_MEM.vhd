@@ -21,8 +21,9 @@ architecture read_only of INST_MEM is
     signal rom : memory_array := (
         0 => x"00A00093", -- addi x1, x0, 10
         1 => x"01400113", -- addi x2, x0, 20
-        2 => x"00118333", -- add x6, x3, x1
-        3 => x"002082B3", -- add x5, x1, x2
+        2 => x"00016283", -- lw x3, 0(x1)  <-- LOAD → WILL CAUSE STALL!!!
+        3 => x"00118333", -- add x6, x3, x1 --> DEPENDENT on x3 → NOP will be inserted here!
+        4 => x"002082B3",  -- add x5, x1, x2 (independent → should proceed normally)    
         others => x"00000013"  -- nop (ADDI x0, x0, 0)
     );
 

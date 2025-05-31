@@ -10,7 +10,8 @@ use work.Pipeline_Types.all;
 entity IF_STA is
     Port ( 
            clk             : in  std_logic; 
-           reset           : in  std_logic;                           
+           reset           : in  std_logic;         
+           stall           : in  numStall;                 
            IF_STAGE        : out PipelineStages_Inst_PC
          ); 
 
@@ -25,10 +26,14 @@ architecture behavior of IF_STA is
     -- PC update and stall logic
    process(clk)
     begin
-        if reset = '1' then  
+        if reset = '1' then
             temp_reg.pc <= (others => '0');
-        elsif rising_edge(clk) then
-            temp_reg.pc <= std_logic_vector(unsigned(temp_reg.pc) + 4);
+        elsif rising_edge(clk) then  
+            if stall /= STALL_NONE then
+                temp_reg.pc <= temp_reg.pc;
+            else
+                temp_reg.pc <= std_logic_vector(unsigned(temp_reg.pc) + 4);
+            end if;
         end if;
     end process;
     

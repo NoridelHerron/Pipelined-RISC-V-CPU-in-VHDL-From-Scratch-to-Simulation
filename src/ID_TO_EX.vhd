@@ -12,6 +12,7 @@ entity ID_TO_EX is
     Port (
             clk             : in  std_logic; 
             reset           : in  std_logic;  
+            stall           : in  numStall;    
             ID_STAGE        : in  PipelineStages_Inst_PC;
             ID              : in  ID_EX_Type; 
             ID_EX_STAGE     : out PipelineStages_Inst_PC;  
@@ -26,13 +27,18 @@ signal ID_EX_reg       : ID_EX_Type             := EMPTY_ID_EX_Type;
 
 begin
     process(clk, reset)
-    begin
-        if reset = '1' then  
-            ID_EX_STAGE_reg <= EMPTY_inst_pc;
-            ID_EX_reg       <= EMPTY_ID_EX_Type;
-        elsif rising_edge(clk) then
-            ID_EX_STAGE_reg <= ID_STAGE;
-            ID_EX_reg       <= ID;
+    begin 
+        if rising_edge(clk) then
+            if reset = '1' then  
+                ID_EX_STAGE_reg <= EMPTY_inst_pc;
+                ID_EX_reg       <= EMPTY_ID_EX_Type;
+            elsif stall = STALL_NONE then
+                ID_EX_STAGE_reg <= ID_STAGE;
+                ID_EX_reg       <= ID;
+            else
+                ID_EX_STAGE_reg <= INSERT_NOP; 
+                ID_EX_reg       <= EMPTY_ID_EX_Type;
+            end if;
         end if;    
     end process;
     

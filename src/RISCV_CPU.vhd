@@ -28,17 +28,15 @@ entity RISCV_CPU is
             reg_out                : out reg_Type;  
             -- data hazard solutions
             num_stall              : out numStall;
-            ForwardA_out           : out ForwardingType;
-            ForwardB_out           : out ForwardingType 
+            Forward_out            : out FORWARD 
          );
 end RISCV_CPU;
 
 architecture Behavioral of RISCV_CPU is
 
     -- data hazard handlers
-    signal ForwardA         : ForwardingType                := FORWARD_NONE;
-    signal ForwardB         : ForwardingType                := FORWARD_NONE;
-    signal stall            : numStall                      := STALL_NONE;
+    signal Forward          : FORWARD                      := EMPTY_FORW_Type;
+    signal stall            : numStall                     := STALL_NONE;
     
     -- pc and instruction
     signal IF_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc; 
@@ -66,33 +64,42 @@ begin
     IF_STAG : entity work.IF_STA port map (
         clk             => clk,
         reset           => reset,
+        stall           => stall,
         IF_STAGE        => IF_STAGE        
     );
     
     IF_TO_ID_STAGE : entity work.IF_TO_ID port map (
         clk             => clk,
         reset           => reset,
+        stall           => stall,
         IF_STAGE        => IF_STAGE,
         IF_ID_STAGE     => ID_STAGE        
     );
+    
     
     DECODE : entity work.DECODER port map (
         clk             => clk,
         reset           => reset,
         IF_ID_STAGE     => ID_STAGE,
-        EX_MEM          => EX_MEM,
-        MEM_WB          => MEM_WB,
         WB              => WB,
         ID              => ID, 
-        reg_out         => ID_reg,
-        Forward_A       => ForwardA,
-        Forward_B       => ForwardB,
-        stall           => stall
+        reg_out         => ID_reg 
+    );
+    
+    HDU : entity work.Haz_det_unit port map (
+        ID              => ID,
+        ID_EX           => ID_EX,
+        EX_MEM          => EX_MEM, 
+        MEM_WB          => MEM_WB, 
+       -- stall_in        => stall,
+        Forward         => Forward,
+        stall_out       => stall 
     );
     
     ID_TO_EX_STAGE : entity work.ID_TO_EX port map (
         clk             => clk,
         reset           => reset,
+        stall           => stall,
         ID_STAGE        => ID_STAGE,
         ID              => ID,
         ID_EX_STAGE     => EX_STAGE,
@@ -103,8 +110,7 @@ begin
         EX_MEM          => EX_MEM,
         WB              => WB,
         ID_EX           => ID_EX,
-        ForwardA        => ForwardA,
-        ForwardB        => ForwardB,
+        Forward         => Forward,
         reg_in          => ID_reg,
         reg_out         => EX_reg
     );
@@ -158,7 +164,6 @@ begin
     MEM_WB_out          <= MEM_WB;
     WB_out              <= WB;
     num_stall           <= stall;
-    ForwardA_out        <= ForwardA;
-    ForwardB_out        <= ForwardB;
+    Forward_out         <= Forward; 
 
 end Behavioral;
