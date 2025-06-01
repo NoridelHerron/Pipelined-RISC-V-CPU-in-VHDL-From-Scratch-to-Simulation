@@ -12,15 +12,15 @@ use work.Pipeline_Types.all;
 entity IF_TO_ID is
     Port (
             clk             : in  std_logic; 
-            reset           : in  std_logic;  
-            stall           : in  numStall;   
+            reset           : in  std_logic; 
+            stall           : in  numStall;  
             IF_STAGE        : in  PipelineStages_Inst_PC;
             IF_ID_STAGE     : out PipelineStages_Inst_PC
           );
 end IF_TO_ID;
 
 architecture Behavioral of IF_TO_ID is
-    signal IF_ID_STAGE_reg : PipelineStages_Inst_PC := EMPTY_inst_pc;
+signal IF_ID_STAGE_reg : PipelineStages_Inst_PC := EMPTY_inst_pc;
 begin
 
     process(clk, reset)
@@ -28,10 +28,12 @@ begin
         if reset = '1' then  
             IF_ID_STAGE_reg <= EMPTY_inst_pc;
         elsif rising_edge(clk) then
-            if stall = STALL_NONE then
-                IF_ID_STAGE_reg <= IF_STAGE;  -- normal update
+            if stall /= STALL_NONE then
+                -- HOLD current value during stall!
+                IF_ID_STAGE_reg    <= IF_ID_STAGE_reg;
             else
-                IF_ID_STAGE_reg <= IF_ID_STAGE_reg;  -- HOLD → prevents skip!!!
+                -- Normal advance
+                IF_ID_STAGE_reg <= IF_STAGE;
             end if;
         end if;
     end process;

@@ -11,12 +11,10 @@ use work.Pipeline_Types.all;
 
 entity Haz_det_unit is
     Port (  
-        IF_ID_STAGE     : in PipelineStages_Inst_PC;
         ID              : in ID_EX_Type;
         ID_EX           : in ID_EX_Type;
         EX_MEM          : in EX_MEM_Type;
         MEM_WB          : in MEM_WB_Type;
-        stall_in        : in numStall;
         Forward         : out FORWARD;
         stall_out       : out numStall
     );
@@ -26,7 +24,7 @@ architecture Behavioral of Haz_det_unit is
 
 begin
 
-    process (IF_ID_STAGE, ID, ID_EX, EX_MEM, MEM_WB, stall_in)
+    process (ID, ID_EX, EX_MEM, MEM_WB)
     begin
         -- Forwarding logic (always active)
         -- Forward A
@@ -50,9 +48,7 @@ begin
         -- Stall logic for LOAD-USE hazard
         if ID_EX.mem_read = '1' and 
             (ID_EX.rd = ID.rs1 or ID_EX.rd = ID.rs2) then
-            stall_out <= STALL_EX_MEM;
-        elsif stall_in = STALL_EX_MEM then
-            stall_out <= STALL_NONE;
+            stall_out <= STALL_NEEDED;
         else
             stall_out <= STALL_NONE;
         end if;

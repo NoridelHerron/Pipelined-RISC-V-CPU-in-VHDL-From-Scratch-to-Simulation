@@ -35,45 +35,45 @@ end RISCV_CPU;
 architecture Behavioral of RISCV_CPU is
 
     -- data hazard handlers
-    signal Forward          : FORWARD                      := EMPTY_FORW_Type;
-    signal stall            : numStall                     := STALL_NONE;
+    signal Forward              : FORWARD                      := EMPTY_FORW_Type;
+    signal stall                : numStall                     := STALL_NONE;
    
     -- pc and instruction
-    signal IF_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc; 
-    signal ID_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal EX_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal MEM_STAGE        : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal WB_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal IF_STAGE             : PipelineStages_Inst_PC        := EMPTY_inst_pc; 
+    signal ID_STAGE             : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal EX_STAGE             : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal MEM_STAGE            : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal WB_STAGE             : PipelineStages_Inst_PC        := EMPTY_inst_pc;
  
     -- stage and in-between stages registers
-    signal ID               : ID_EX_Type                    := EMPTY_ID_EX_Type;
-    signal ID_EX            : ID_EX_Type                    := EMPTY_ID_EX_Type;  
-    signal EX               : EX_MEM_Type                   := EMPTY_EX_MEM_Type;
-    signal EX_MEM           : EX_MEM_Type                   := EMPTY_EX_MEM_Type; 
-    signal MEM              : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
-    signal MEM_WB           : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
-    signal WB               : WB_Type                       := EMPTY_WB_Type;
+    signal ID                   : ID_EX_Type                    := EMPTY_ID_EX_Type;
+    signal ID_EX                : ID_EX_Type                    := EMPTY_ID_EX_Type;   
+    signal EX                   : EX_MEM_Type                   := EMPTY_EX_MEM_Type;
+    signal EX_MEM               : EX_MEM_Type                   := EMPTY_EX_MEM_Type; 
+    signal MEM                  : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
+    signal MEM_WB               : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
+    signal WB                   : WB_Type                       := EMPTY_WB_Type;
     
     -- register data value from the register source 
-    signal ID_reg           : reg_Type                      := EMPTY_reg_Type;
+    signal ID_reg               : reg_Type                      := EMPTY_reg_Type;
     -- data value from either register source or value forwarded
-    signal EX_reg           : reg_Type                      := EMPTY_reg_Type;
+    signal EX_reg               : reg_Type                      := EMPTY_reg_Type;
     
 begin
-    
+ 
     IF_STAG : entity work.IF_STA port map (
         clk             => clk,
         reset           => reset,
         stall           => stall,
-        IF_STAGE        => IF_STAGE        
+        IF_STAGE        => IF_STAGE      
     );
     
     IF_TO_ID_STAGE : entity work.IF_TO_ID port map (
-        clk             => clk,
-        reset           => reset,
+        clk            => clk,
+        reset          => reset, 
         stall           => stall,
-        IF_STAGE        => IF_STAGE,
-        IF_ID_STAGE     => ID_STAGE        
+        IF_STAGE       => IF_STAGE,
+        IF_ID_STAGE    => ID_STAGE        
     );
     
     DECODE : entity work.DECODER port map (
@@ -85,21 +85,20 @@ begin
         reg_out         => ID_reg 
     );
     
-    HDU : entity work.Haz_det_unit port map (
-        IF_ID_STAGE     => ID_STAGE,
+    HDU : entity work.Haz_det_unit port map (    
         ID              => ID, 
         ID_EX           => ID_EX,
         EX_MEM          => EX_MEM, 
         MEM_WB          => MEM_WB, 
-        stall_in        => stall,
+        --stall_in        => stall,
         Forward         => Forward,
         stall_out       => stall 
     );
     
     ID_TO_EX_STAGE : entity work.ID_TO_EX port map (
         clk             => clk,
-        reset           => reset,
-        stall           => stall,
+        reset           => reset,  
+        stall           => stall,  
         ID_STAGE        => ID_STAGE,
         ID              => ID,
         ID_EX_STAGE     => EX_STAGE,

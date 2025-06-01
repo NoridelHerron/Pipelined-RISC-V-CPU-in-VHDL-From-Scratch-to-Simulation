@@ -40,8 +40,7 @@ package Pipeline_Types is
         
     type numStall is (
         STALL_NONE,     -- "00" 
-        STALL_MEM_WB,   -- "01"
-        STALL_EX_MEM    -- "10"
+        STALL_NEEDED    -- "10"
         );
         
     type FORWARD is record
@@ -159,9 +158,17 @@ package Pipeline_Types is
         B   => FORWARD_NONE
     );  
     
-    constant INSERT_NOP : PipelineStages_Inst_PC := (
-    pc    => (others => '0'),
-    instr => x"00000013"  -- Real NOP!
+    constant insert_NOP : ID_EX_Type := (
+        op          => "0010011",
+        funct3      => (others => '0'),
+        funct7      => (others => '0'),  
+        store_rs2   => (others => '0'),
+        rs1         => (others => '0'),
+        rs2         => (others => '0'),
+        rd          => (others => '0'), 
+        reg_write   => '0',
+        mem_read    => '0',
+        mem_write   => '0'
     );
 
 end package;

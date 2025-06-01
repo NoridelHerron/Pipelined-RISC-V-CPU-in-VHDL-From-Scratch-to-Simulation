@@ -11,7 +11,7 @@ use work.Pipeline_Types.all;
 entity ID_TO_EX is
     Port (
             clk             : in  std_logic; 
-            reset           : in  std_logic;  
+            reset           : in  std_logic;   
             stall           : in  numStall;    
             ID_STAGE        : in  PipelineStages_Inst_PC;
             ID              : in  ID_EX_Type; 
@@ -27,20 +27,24 @@ signal ID_EX_reg       : ID_EX_Type             := EMPTY_ID_EX_Type;
 
 begin
     process(clk, reset)
-    begin 
-        if rising_edge(clk) then
-            if reset = '1' then  
-                ID_EX_STAGE_reg <= EMPTY_inst_pc;
-                ID_EX_reg       <= EMPTY_ID_EX_Type;
-            elsif stall = STALL_NONE then
+    begin
+        if reset = '1' then
+            ID_EX_STAGE_reg <= EMPTY_inst_pc;
+            ID_EX_reg       <= EMPTY_ID_EX_Type;
+        elsif rising_edge(clk) then
+            if stall /= STALL_NONE then
+                -- STALL → insert NOP into ID_EX
+                ID_EX_STAGE_reg.pc    <= ID_EX_STAGE_reg.pc;
+                ID_EX_STAGE_reg.instr <= NOP;
+                ID_EX_reg             <= EMPTY_ID_EX_Type;  -- NOP control signals
+            else
+                -- Normal advance
                 ID_EX_STAGE_reg <= ID_STAGE;
                 ID_EX_reg       <= ID;
-            else
-                ID_EX_STAGE_reg <= INSERT_NOP; 
-                ID_EX_reg       <= EMPTY_ID_EX_Type;
             end if;
-        end if;    
+        end if;
     end process;
+
     
     ID_EX_STAGE <= ID_EX_STAGE_reg;
     ID_EX       <= ID_EX_reg;
