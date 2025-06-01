@@ -37,7 +37,7 @@ architecture Behavioral of RISCV_CPU is
     -- data hazard handlers
     signal Forward          : FORWARD                      := EMPTY_FORW_Type;
     signal stall            : numStall                     := STALL_NONE;
-    
+   
     -- pc and instruction
     signal IF_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc; 
     signal ID_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
@@ -60,7 +60,7 @@ architecture Behavioral of RISCV_CPU is
     signal EX_reg           : reg_Type                      := EMPTY_reg_Type;
     
 begin
-
+    
     IF_STAG : entity work.IF_STA port map (
         clk             => clk,
         reset           => reset,
@@ -76,7 +76,6 @@ begin
         IF_ID_STAGE     => ID_STAGE        
     );
     
-    
     DECODE : entity work.DECODER port map (
         clk             => clk,
         reset           => reset,
@@ -88,6 +87,7 @@ begin
     
     HDU : entity work.Haz_det_unit port map (
         IF_ID_STAGE     => ID_STAGE,
+        ID              => ID, 
         ID_EX           => ID_EX,
         EX_MEM          => EX_MEM, 
         MEM_WB          => MEM_WB, 

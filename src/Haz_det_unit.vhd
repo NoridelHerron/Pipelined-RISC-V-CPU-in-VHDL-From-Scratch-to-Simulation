@@ -12,6 +12,7 @@ use work.Pipeline_Types.all;
 entity Haz_det_unit is
     Port (  
         IF_ID_STAGE     : in PipelineStages_Inst_PC;
+        ID              : in ID_EX_Type;
         ID_EX           : in ID_EX_Type;
         EX_MEM          : in EX_MEM_Type;
         MEM_WB          : in MEM_WB_Type;
@@ -22,28 +23,25 @@ entity Haz_det_unit is
 end Haz_det_unit;
 
 architecture Behavioral of Haz_det_unit is
-signal rs1_addr  : std_logic_vector(REG_ADDR_WIDTH - 1 downto 0) := (others => '0');
-signal rs2_addr  : std_logic_vector(REG_ADDR_WIDTH - 1 downto 0) := (others => '0');
+
 begin
 
-    process (IF_ID_STAGE, EX_MEM, MEM_WB, stall_in)
+    process (IF_ID_STAGE, ID, ID_EX, EX_MEM, MEM_WB, stall_in)
     begin
-        rs1_addr <= IF_ID_STAGE.instr(19 downto 15);
-        rs2_addr <= IF_ID_STAGE.instr(24 downto 20); 
         -- Forwarding logic (always active)
         -- Forward A
-        if EX_MEM.reg_write = '1' and EX_MEM.rd /= "00000" and EX_MEM.rd = rs1_addr then
+        if EX_MEM.reg_write = '1' and EX_MEM.rd /= "00000" and EX_MEM.rd = ID_EX.rs1 then
             Forward.A <= FORWARD_EX_MEM;
-        elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= "00000" and MEM_WB.rd = rs1_addr then
+        elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= "00000" and MEM_WB.rd = ID_EX.rs1 then
             Forward.A <= FORWARD_MEM_WB;
         else
             Forward.A <= FORWARD_NONE;
         end if;
 
         -- Forward B
-        if EX_MEM.reg_write = '1' and EX_MEM.rd /= "00000" and EX_MEM.rd = rs2_addr then
+        if EX_MEM.reg_write = '1' and EX_MEM.rd /= "00000" and EX_MEM.rd = ID_EX.rs2 then
             Forward.B <= FORWARD_EX_MEM;
-        elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= "00000" and MEM_WB.rd = rs2_addr then
+        elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= "00000" and MEM_WB.rd = ID_EX.rs2 then
             Forward.B <= FORWARD_MEM_WB;
         else
             Forward.B <= FORWARD_NONE;
@@ -51,7 +49,7 @@ begin
 
         -- Stall logic for LOAD-USE hazard
         if ID_EX.mem_read = '1' and 
-            (ID_EX.rd = IF_ID_STAGE.instr(19 downto 15) or ID_EX.rd = IF_ID_STAGE.instr(24 downto 20)) then
+            (ID_EX.rd = ID.rs1 or ID_EX.rd = ID.rs2) then
             stall_out <= STALL_EX_MEM;
         elsif stall_in = STALL_EX_MEM then
             stall_out <= STALL_NONE;

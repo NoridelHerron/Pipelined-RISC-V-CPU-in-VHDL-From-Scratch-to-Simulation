@@ -59,8 +59,8 @@ begin
         end if;
     
         if ID_temp.op = S_TYPE then 
-            ID_temp.mem_write := '0';
-            ID_temp.store_rs2 := ID_temp.store_rs2;
+            ID_temp.mem_write := '1';
+            ID_temp.store_rs2 := reg.reg_data2;
         end if;   
     
         rs1_addr                <= ID_temp.rs1;

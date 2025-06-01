@@ -18,16 +18,11 @@ architecture sim of tb_CPU_RISCV is
     
     signal clk              : std_logic := '0';
     signal reset            : std_logic := '1';
-
-    -- Forwading
-    signal Forward          : FORWARD                      := EMPTY_FORW_Type;
-
-    -- Inserting NOP's
-    signal stall            : numStall                      := STALL_NONE;
     
-    -- pc and instruction
     signal IF_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
     signal ID_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal Forward          : FORWARD                       := EMPTY_FORW_Type;
+    signal stall            : numStall                      := STALL_NONE;
     signal ID_EX            : ID_EX_Type                    := EMPTY_ID_EX_Type;  
     signal ID_reg           : reg_Type                      := EMPTY_reg_Type;
     signal EX_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
