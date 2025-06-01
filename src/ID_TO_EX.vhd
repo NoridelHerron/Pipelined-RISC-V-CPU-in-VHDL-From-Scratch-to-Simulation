@@ -36,7 +36,7 @@ begin
                 -- STALL → insert NOP into ID_EX
                 ID_EX_STAGE_reg.pc    <= ID_EX_STAGE_reg.pc;
                 ID_EX_STAGE_reg.instr <= NOP;
-                ID_EX_reg             <= EMPTY_ID_EX_Type;  -- NOP control signals
+                ID_EX_reg             <= insert_NOP;  -- NOP control signals
             else
                 -- Normal advance
                 ID_EX_STAGE_reg <= ID_STAGE;

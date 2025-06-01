@@ -56,11 +56,15 @@ begin
   
         if ID_temp.op = LOAD then 
             ID_temp.mem_read := '1';
+            ID_temp.funct3   := "000";
+            ID_temp.funct7   := "0000000";
         end if;
     
         if ID_temp.op = S_TYPE then 
             ID_temp.mem_write := '1';
             ID_temp.store_rs2 := reg.reg_data2;
+            ID_temp.funct3   := "000";
+            ID_temp.funct7   := "0000000";
         end if;   
     
         rs1_addr                <= ID_temp.rs1;
