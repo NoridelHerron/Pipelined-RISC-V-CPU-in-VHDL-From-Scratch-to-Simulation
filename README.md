@@ -106,7 +106,7 @@ This ensures that the ID stage (hazard detection and forwarding) always receives
 ### Design Note: Forwarding
 - I chose not to pass the raw register values (reg_data1, reg_data2) through the ID/EX register.
 - Instead, I implemented bypass forwarding — the Forwarding MUX is placed after the ID/EX register, but it selects the correct operand based on current forwarding conditions.
-- This prevents stale register data from being latched into ID/EX during a stall. The EX_STAGE will always receive the correct operand — either forwarded or fresh — even if the pipeline is stalled.
+- This prevents data arriving late to ex stage.
 
 **Logic**: if EX_MEM.reg_write = '1' and EX_MEM.rd /= ZERO_5bits and EX_MEM.rd = ID_EX.rs1/ID_EX.rs2 then
                 Forward.A (or Forward.B) <= FORWARD_EX_MEM;
@@ -121,7 +121,7 @@ When a stall is detected, I pass the stall signal to multiple stages:
 - In IF_STAGE and IF/ID, I hold the PC (PC is not updated).
 - In ID/EX, I also hold the PC value, but for debugging purposes, I inject a NOP into the pipeline:
 - The instruction type is set to the decoded NOP value.
-- The register source fields are set to 0.
+- The register source fields are set to 0 in the forwadi.
 
 Additionally, in the Forwarding MUX, I set the register operand values to 0 during a stall, to ensure that no unintended data or partial results propagate forward, and to prevent any ALU delay or spurious computation during the stalled cycle.
 
