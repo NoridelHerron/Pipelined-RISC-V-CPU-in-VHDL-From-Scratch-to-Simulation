@@ -137,7 +137,7 @@ Additionally, in the Forwarding MUX, I set the register operand values to 0 duri
 - This makes it obvious when the pipeline is holding due to a hazard, and prevents any misleading partial or invalid instruction from appearing downstream.
 - Setting the reg values to zero in the Forwarding MUX also helps ensure that EX_STAGE outputs remain stable and easy to interpret during stalls.
 
-![Pipeline with forwading and stalling](EXPECTED_Pipeline.png) 
+![Pipeline with forwading and stalling](images/EXPECTED_Pipeline.png) 
 
 **How did I confirm the pipeline is working properly?** 
 To verify that the pipeline stages were functioning as intended, I observed the flow of instructions across each stage in the waveform viewer.
