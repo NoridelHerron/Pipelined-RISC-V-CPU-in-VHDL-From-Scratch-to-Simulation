@@ -77,22 +77,18 @@ begin
         IF_ID_STAGE    => ID_STAGE        
     );
     
-    DECODE : entity work.DECODER port map (
+    ID_HDU : entity work.ID_STA port map (    
         clk             => clk,
         reset           => reset,
-        IF_ID_STAGE     => ID_STAGE,
+        ID_STAGE        => ID_STAGE,  
         WB              => WB,
-        ID              => ID, 
-        reg_out         => ID_reg 
-    );
-    
-    HDU : entity work.Haz_det_unit port map (    
-        ID              => ID, 
         ID_EX           => ID_EX,
         EX_MEM          => EX_MEM, 
         MEM_WB          => MEM_WB, 
-        Forward         => Forward,
-        stall_out       => stall 
+        ID              => ID,
+        Forward_out     => Forward,
+        stall_out       => stall,
+        reg_out         => ID_reg 
     );
     
     ID_TO_EX_STAGE : entity work.ID_TO_EX port map (
