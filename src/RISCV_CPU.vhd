@@ -101,21 +101,15 @@ begin
         ID_EX           => ID_EX
     );
     
-    FWD : entity work.Forwarding port map (
+    EX_ST : entity work.EX_STAG port map (
         ID_EX_STAGE     => EX_STAGE,
         EX_MEM          => EX_MEM,
         WB              => WB,
         ID_EX           => ID_EX,
         Forward         => Forward,
         reg_in          => ID_reg,
-        reg_out         => EX_reg
-    );
-    
-    EXECUTION : entity work.EX_STAGE port map (
-        reg             => EX_reg,
-        ID_EX           => ID_EX,
-        EX              => EX   
-    );
+        EX              => EX        
+    ); 
     
     EX_TO_MEM_STAGE : entity work.EX_TO_MEM port map (
         clk             => clk,
