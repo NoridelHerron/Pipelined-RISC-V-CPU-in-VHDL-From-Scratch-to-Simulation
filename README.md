@@ -32,21 +32,7 @@ Questions I’m still exploring:
 If anyone has insights or resources on this, I would love to learn! I’d like to apply better-informed decisions on my next project.
 
 ## Pipeline Diagram
-**Note**: Will do this once everything is completed.
-
-**Note**: You’ll find earlier versions of each pipeline stage in the individual repositories. These earlier modules were initially hardcoded and included design assumptions I later realized were incorrect. Through full system integration, I restructured the design to follow correct pipeline flow and made the architecture scalable and modular.
-
-Even though I’ve revised some of the early logic, the original documentation and waveforms still show why I implemented certain flags the way I did. You might also find the randomized testbenches helpful for testing your own designs.
-
-- **IF_STAGE** https://github.com/NoridelHerron/INSTRUCTION_FETCH
-- **ROM** https://github.com/NoridelHerron/MEMORY_MODULE
-- **ID_STAGE** https://github.com/NoridelHerron/ID_STAGE
-- **REGISTERS** https://github.com/NoridelHerron/32x32-bit-Register-File-in-VHDL-
-- **EX_STAGE** https://github.com/NoridelHerron/EX_STAGE
-- **ALU** https://github.com/NoridelHerron/ALU_with_testBenches_vhdl
-- **MEM_STAGE** https://github.com/NoridelHerron/MEM_STAGE
-- **DATA_MEM** https://github.com/NoridelHerron/DATA_MEM
-- **WB_STAGE** https://github.com/NoridelHerron/WB_STAGE
+IF --> ID --> EX --> MEM --> WB
 
 ## Project Structure
 **PIPELINE**/
@@ -78,12 +64,11 @@ Even though I’ve revised some of the early logic, the original documentation a
 - .gitignore
 - README.md
 
-## Design Note:
+## Personal Note
+I initially tried to follow existing RISC-V pipeline diagrams, but many of them did not provide enough detailed information for full implementation. To address this, I made several design modifications based on my own testing and understanding of hazard timing and pipeline behavior. The resulting pipeline reflects these practical adjustments.
+
+### Design Note:
 Once the project is complete, I plan to remove unnecessary signals from the record types in some of the stages. For now, I am keeping these extra signals to aid in debugging.
-
-I also made a design choice regarding component encapsulation. I tried to encapsulate most of the internal components of each stage (such as the register file, RAM, and ROM) within their corresponding stage modules. However, I intentionally placed the forwarding mux at the top level. This makes it easier for anyone reviewing the project to immediately see where the forwarding mux is placed, without needing to dig through multiple files.
-
-I also considered the impact this design choice might have on testbench verification. Since I have already verified the ALU and EX stage with at least 5000 randomized test cases, I ensured that moving the forwarding mux to the top level did not affect the ALU’s calculation outputs. For other stages, this is less critical, as they are not central to the CPU’s core computation.
 
 ## Design Note — Control Signals
 Instead of passing the full opcode through the pipeline, I generate compact control signals during instruction decode. This reduces the number of bits transferred between stages and simplifies control logic in later stages.
@@ -96,51 +81,54 @@ At the moment, it looks like using a 2-bit field is more efficient, since combin
 
 If anyone has recommendations or best practices for control signal encoding in pipelined CPU designs, I would love to learn from your experience!
 
-## Design Note — Forwarding Detection
+### Design Note — IF STAGE
+**Observation**: 
+- After reset, you will see instructions at index 0 appear twice — this is normal and caused by the memory’s initial response delay.
+- When the PC is first updated to 0, the instruction memory takes one cycle to output the correct value. In that first cycle, the memory output is still either undefined or an old/default value (often 0).
+- On the next cycle, with PC still at 0, the memory now outputs the correct instruction at index 0 — this is why you see index 0 twice in the waveform.
+- After this initial delay, the following instructions will flow normally:
+- Each time PC is updated (PC = 4, PC = 8, etc.), the corresponding instruction will appear on the next cycle — this one-cycle phase delay between PC and instruction is normal for synchronous memory systems.
 
-I placed the forwarding decision logic inside the Decode stage because this is the earliest point where hazards can be detected — once the source registers (rs1_addr, rs2_addr) are known.
+**Debug Tip**: I made sure to latch the PC counter to a separate PC_latched signal, since I was also latching the instruction fetched from memory. This allows me to clearly see the current instruction and the next PC value at the same time in the waveform, making pipeline flow easier to debug.
 
-To ensure correct pipeline timing, I pass the forwarding control signals (ForwardA, ForwardB) directly to the forwarding mux in the forwading.vhd— after the pipeline register between ID and EX.
-- This guarantees that when an instruction reaches the EX stage, the forwarding mux already has the correct control inputs.
-- This avoids any delay — the mux can select the correct ALU operands in the same cycle the instruction enters EX.
+### Design Note: ID STAGE
+- I encapsulated the Decoder and Hazard Detection Unit (HDU) into a single ID_STAGE module, because the earliest point where hazards can be detected is during decoding — once the instruction type, register sources, and dependencies are known.
 
+### Design Note: EX stage
+- I encapsulated the Forwarding MUX and the Execution stage (ALU and control) into a single EX_STAGE module, because forwarding decisions directly affect which operand values are sent to the ALU. By keeping them in the same stage, I can guarantee correct data selection and simplify timing and debugging.
 
-For the hazard comparison:
-- I compare rs1_addr and rs2_addr of the current instruction in Decode with rd of instructions in later stages (EX_MEM, MEM_WB).
-- I chose to minimize port complexity by using internal signals (rs1_addr and rs2_addr), which are equivalent in meaning to ID_EX.rs1 and ID_EX.rs2.
+### Design Note: WB_STAGE 
+- In the WB_STAGE, I implemented logic to decide which value should be forwarded back to the ID stage: either the memory load result or the ALU result.
+- If both mem_read = '1' and reg_write = '1', then the value forwarded is from memory (mem_result).
+- Otherwise, if it is an ALU or other operation, the forwarded value is from EX/MEM (ex_result).
 
-I am still considering whether to:
-- add more ports to expose these values directly, or
-- encapsulate them by passing them through the pipeline records (which appears to be the cleaner, more scalable approach).
+This ensures that the ID stage (hazard detection and forwarding) always receives the correct data for any instruction type — LOAD or ALU.
 
-If anyone has experience or best practices for structuring forwarding logic and signal flow in pipelined CPUs, I would love to hear your feedback!
+### Design Note: Forwarding
+- I chose not to pass the raw register values (reg_data1, reg_data2) through the ID/EX register.
+- Instead, I implemented bypass forwarding — the Forwarding MUX is placed after the ID/EX register, but it selects the correct operand based on current forwarding conditions.
+- This prevents stale register data from being latched into ID/EX during a stall. The EX_STAGE will always receive the correct operand — either forwarded or fresh — even if the pipeline is stalled.
 
-## DEBUGGING Strategies
-### Debugging note
-For debugging, you can organize signals in the testbench however you prefer — for example, moving signals into different waveform groups or adding trace logging.
-In this project, since I’m currently testing with only 4 instructions, I used a simpler debug method. However, for larger programs or full instruction sets, it is highly recommended to pass the PC and instruction fields through each pipeline stage and group them accordingly in the testbench and waveform viewer.
+### Design Note: Stall Handling
+When a stall is detected, I pass the stall signal to multiple stages:
+- In IF_STAGE and IF/ID, I hold the PC (PC is not updated).
+- In ID/EX, I also hold the PC value, but for debugging purposes, I inject a NOP into the pipeline:
+- The instruction type is set to the decoded NOP value.
+- The register source fields are set to 0.
 
-This is why in my design, I pass PC and instruction through all stages — the main purpose is to support clear debugging and visibility at each stage, especially as the project scales.
+Additionally, in the Forwarding MUX, I set the register operand values to 0 during a stall, to ensure that no unintended data or partial results propagate forward, and to prevent any ALU delay or spurious computation during the stalled cycle.
 
-### Wave debugging
+### Debug Tip:
+- I chose to inject a NOP into the ID/EX stage during a stall so that it is easy to visualize the stall in the waveform — the NOP acts as a clear marker.
+- This makes it obvious when the pipeline is holding due to a hazard, and prevents any misleading partial or invalid instruction from appearing downstream.
+- Setting the reg values to zero in the Forwarding MUX also helps ensure that EX_STAGE outputs remain stable and easy to interpret during stalls.
 
-**Note**: If you're a beginner like me, don’t do what I did — avoid trying to add too many instructions at once! Start with just a couple of known instructions and add more as you get comfortable. Otherwise, you’ll start seeing "double" in the waveforms. 
-
-**Additional Note**: Be patient — debugging is a skill that improves with practice.
-
-![PCs and Instructions](images/pc_instr.png) 
-**Where did I start?**
-I began by focusing on the Program Counter (PC) and the instruction being fetched (IF stage), starting at 25 ns.
-I checked whether, as each instruction was fetched, the PC was incrementing by 4 as expected — meaning it was moving to the next instruction correctly.
-
-But it’s not enough to just check that the PC increments. I also needed to confirm that this happens in exactly **one cycle**. If it takes longer than one cycle, that’s a sign something is wrong and I would need to investigate further.
+![Register between IF and ID stage](EXPECTED_Pipeline) 
 
 **How did I confirm the pipeline is working properly?** 
 To verify that the pipeline stages were functioning as intended, I observed the flow of instructions across each stage in the waveform viewer.
-In this test:
-    The first instruction entered the IF stage at 25 ns and completed the pipeline at 75 ns — meaning it took exactly **5 clock cycles** to pass through all 5 stages, as expected.
 
-Here’s how the pipeline filled:
+Here’s how the pipeline filled after memory stabilize :
 - **Cycle 1**: Instruction 1 in IF
 - **Cycle 2**: Instruction 1 in ID, Instruction 2 in IF
 - **Cycle 3**: Instruction 1 in EX, Instruction 2 in ID, Instruction 3 in IF
@@ -148,23 +136,27 @@ Here’s how the pipeline filled:
     
 This confirmed that my pipeline was flowing correctly: no stages were skipped, and instructions advanced in a staggered manner through the pipeline.
 
-![Register between IF and ID stage](images/IF_ID_reg.png) 
-**How did I check if the Decode stage was doing its job, and where did I look?** 
-    For the first instruction, I looked at 35 ns.
-    At that point, you won’t see the decoded value yet — because it takes one full cycle for it to update. You’ll see the correct decoded value in the following cycle.
+**How did I verified stalling works?**
+- Made sure nop is inserted after load instruction.
 
-This same pattern applies to every stage: the data you expect will appear one cycle later than the trigger event. It’s important to understand this when reading the waveform — otherwise, you might think something is broken when it isn’t!
+**How did I verified Forwading works?**
+- Made sure the operands in ex_stage is what I expected.
+
+## More DEBUGGING Strategies
+### Debugging note
+For debugging, you can organize signals in the testbench however you prefer — for example, moving signals into different waveform groups or adding trace logging.
+In this project, since I’m currently testing with only 4 instructions, I used a simpler debug method. However, for larger programs or full instruction sets, it is highly recommended to pass the PC and instruction fields through each pipeline stage and group them accordingly in the testbench and waveform viewer.
+
+This is why in my design, I pass PC and instruction through all stages — the main purpose is to support clear debugging and visibility at each stage, especially as the project scales.
 
 **Tip**: Using a **record type** for your pipeline signals makes your code much cleaner and easier to debug. In the waveform viewer, records are displayed as expandable groups. This allows you to quickly spot problems — if you see a signal that is not green, you can expand the record and immediately pinpoint which field is incorrect.
 
 However, just seeing "all green" does not guarantee that everything is working correctly. You still need to carefully check that each value matches your expectations and is appearing at the correct stage and cycle. If something looks off, go back and investigate — even if the signal colors look fine.
 
-![Showing what I expected](images/as_expected.png) 
+### Wave debugging
+**Warning Note**: If you're a beginner like me, don’t do what I did — avoid trying to add too many instructions at once! Start with just a couple of known instructions and add more as you get comfortable. Otherwise, you’ll start seeing "double" in the waveforms. 
 
-**Reflection**:
-When everything looks as expected in the waveform, that usually means your implementation is correct.
-
-But be careful — sometimes the problem is not in how we implemented it, but in what we believed was correct in the first place. If the design or our understanding is wrong, the implementation can appear "correct" — but the CPU will still not behave as intended.
+**Additional Note**: Be patient — debugging is a skill that improves with practice.
 
 ### Tcl Console technique
 For the full pipeline integration, I did not use the Tcl console extensively yet — because I am still building a solid understanding of how pipelined CPUs work. My goal is to improve this as I progress through the project. If anyone has recommendations or best practices for using Tcl console in this context, I would love to learn from them.
@@ -177,9 +169,22 @@ However, here is the general approach I used when testing individual modules:
 
 This method helped me debug module-level behavior even without fully using Tcl automation yet. I plan to expand this technique as I become more comfortable with pipeline-level debugging.
 
----
+**Note**: You’ll find earlier versions of each pipeline stage in the individual repositories. These earlier modules were initially hardcoded and included design assumptions I later realized were incorrect. Through full system integration, I restructured the design to follow correct pipeline flow and made the architecture scalable and modular.
+
+Even though I’ve revised some of the early logic, the original documentation and waveforms still show why I implemented certain flags the way I did. You might also find the randomized testbenches helpful for testing your own designs.
+
+- **IF_STAGE** https://github.com/NoridelHerron/INSTRUCTION_FETCH
+- **ROM** https://github.com/NoridelHerron/MEMORY_MODULE
+- **ID_STAGE** https://github.com/NoridelHerron/ID_STAGE
+- **REGISTERS** https://github.com/NoridelHerron/32x32-bit-Register-File-in-VHDL-
+- **EX_STAGE** https://github.com/NoridelHerron/EX_STAGE
+- **ALU** https://github.com/NoridelHerron/ALU_with_testBenches_vhdl
+- **MEM_STAGE** https://github.com/NoridelHerron/MEM_STAGE
+- **DATA_MEM** https://github.com/NoridelHerron/DATA_MEM
+- **WB_STAGE** https://github.com/NoridelHerron/WB_STAGE
+
 ## What's next 
-Implement and test stalling, jump, and branch handling
+Implement jump, and branch handling
 
 ## Future exploration
 - Explore implementing a Von Neumann architecture CPU
