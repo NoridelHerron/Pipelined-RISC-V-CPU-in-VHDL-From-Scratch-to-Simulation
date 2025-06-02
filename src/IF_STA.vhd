@@ -5,7 +5,12 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+
+-- CUSTOMIZED PACKAGE
+library work;
 use work.Pipeline_Types.all;
+use work.const_Types.all;
+use work.initialize_Types.all;
 
 entity IF_STA is
     Port ( 
@@ -18,49 +23,38 @@ entity IF_STA is
 end IF_STA;
 
 architecture behavior of IF_STA is
-
-    -- we need a stable signal to hold the instruction before it gets send out
-    signal temp_reg      : PipelineStages_Inst_PC           := EMPTY_inst_pc;
-    signal instr_fetched : std_logic_vector(31 downto 0);
-   -- signal stall_reg     : numStall                         := STALL_NONE;
+    
+    signal pc_fetch         : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
+    signal instr_fetched    : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
+    signal temp_reg         : PipelineStages_Inst_PC                  := EMPTY_inst_pc;
     
 begin
 
-   -- process(stall)
-   -- begin 
-     --   if reset = '1' then
-    --        stall_reg <= STALL_NONE;
-      --  else
-      --      stall_reg <= stall;
-      --  end if;
-    --end process;
-    
-   -- PC update and stall logic
-   process(clk)
+    process(clk)
     begin
         if reset = '1' then
-            temp_reg.pc    <= (others => '0');
-            temp_reg.instr <= NOP;
+        
+            pc_fetch     <= ZERO_32bits;
+            temp_reg.pc  <= ZERO_32bits;
+            temp_reg.instr  <= NOP;
+            
         elsif rising_edge(clk) then
+        
             if stall = STALL_NONE then
-                temp_reg.pc    <= std_logic_vector(unsigned(temp_reg.pc) + 4);
-                temp_reg.instr <= instr_fetched;  -- capture new instruction     
-            else
-                temp_reg    <= temp_reg;      
+                -- make sure that the pc_fetch is in phase with instr_fetch, debugging purpose
+                temp_reg.pc     <= pc_fetch; 
+                temp_reg.instr  <= instr_fetched;
+                pc_fetch        <= std_logic_vector(unsigned(pc_fetch) + 4);
             end if;
+            
         end if;
     end process;
 
-    
-    -- Get the instruction from memory
     MEM : entity work.INST_MEM port map (
-            clk   => clk,
-            reset => reset,
-            addr  => temp_reg.pc, 
-            instr => instr_fetched
-        );
-  
-    -- Output to decoder
-    IF_STAGE     <= temp_reg;
-      
+        clk   => clk,
+        addr  => pc_fetch,
+        instr => instr_fetched
+    );
+
+    IF_STAGE <= temp_reg;
 end behavior;

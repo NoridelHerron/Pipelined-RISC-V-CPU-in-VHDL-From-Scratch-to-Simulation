@@ -5,32 +5,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use work.const_Types.all;
 
 package Pipeline_Types is
 
-    -- NOP
-    constant NOP    : std_logic_vector(31 downto 0) := x"00000013";
-    -- OPCODE TYPE
-    constant R_TYPE : std_logic_vector(6 downto 0) := "0110011";
-    constant I_IMME : std_logic_vector(6 downto 0) := "0010011";
-    constant LOAD   : std_logic_vector(6 downto 0) := "0000011";
-    constant S_TYPE : std_logic_vector(6 downto 0) := "0100011";
-    
-    constant ENABLE_FORWARDING : boolean := true;
-    --constant ENABLE_FORWARDING : boolean := false;
-    
-    -- You can also define constants 
-    constant DATA_WIDTH     : integer := 32;
-    constant REG_ADDR_WIDTH : integer := 5;
-    constant FUNCT3_WIDTH   : integer := 3;
-    constant FUNCT7_WIDTH   : integer := 7;
-    constant OPCODE_WIDTH   : integer := 7;
-    constant FLAG_WIDTH     : integer := 4;
-    constant DEPTH          : integer := 4;
-    constant LOG2DEPTH      : integer := 2;
-    constant IMM_WIDTH      : integer := 12;
-    constant STALL_WIDTH    : integer := 2;
-      
     -- Forwarding control type
     type ForwardingType is (
         FORWARD_NONE,       -- "00" 
@@ -99,76 +77,5 @@ package Pipeline_Types is
         data        : std_logic_vector(DATA_WIDTH-1 downto 0); 
         rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);
     end record;
-
-    -- Initialize all to 0
-    constant EMPTY_inst_pc : PipelineStages_Inst_PC := (
-        instr       => (others => '0'),
-        pc          => (others => '0')
-    );
-    
-    constant EMPTY_ID_EX_Type : ID_EX_Type := (
-        op          => (others => '0'),
-        funct3      => (others => '0'),
-        funct7      => (others => '0'),  
-        store_rs2   => (others => '0'),
-        rs1         => (others => '0'),
-        rs2         => (others => '0'),
-        rd          => (others => '0'), 
-        reg_write   => '0',
-        mem_read    => '0',
-        mem_write   => '0'
-    );
-    
-    constant EMPTY_EX_MEM_Type : EX_MEM_Type := (
-        reg_data1   => (others => '0'),
-        reg_data2   => (others => '0'),
-        result      => (others => '0'),
-        flags       => (others => '0'),  
-        op          => (others => '0'),
-        rd          => (others => '0'),
-        store_rs2   => (others => '0'),
-        reg_write   => '0',
-        mem_read    => '0',
-        mem_write   => '0'     
-    );
-    
-    constant EMPTY_MEM_WB_Type : MEM_WB_Type := (
-        alu_result  => (others => '0'),
-        mem_result  => (others => '0'),
-        rd          => (others => '0'),
-        op          => (others => '0'),  
-        reg_write   => '0',
-        mem_read    => '0',
-        mem_write   => '0'     
-    );
-    
-    constant EMPTY_WB_Type : WB_Type := (
-        write       => '0',
-        data        => (others => '0'),
-        rd          => (others => '0')
-    );
-    
-    constant EMPTY_reg_Type : reg_Type := (
-        reg_data1   => (others => '0'),
-        reg_data2   => (others => '0')
-    );
-
-    constant EMPTY_FORW_Type : FORWARD := (
-        A   => FORWARD_NONE,
-        B   => FORWARD_NONE
-    );  
-    
-    constant insert_NOP : ID_EX_Type := (
-        op          => "0010011",
-        funct3      => (others => '0'),
-        funct7      => (others => '0'),  
-        store_rs2   => (others => '0'),
-        rs1         => (others => '0'),
-        rs2         => (others => '0'),
-        rd          => (others => '0'), 
-        reg_write   => '0',
-        mem_read    => '0',
-        mem_write   => '0'
-    );
 
 end package;

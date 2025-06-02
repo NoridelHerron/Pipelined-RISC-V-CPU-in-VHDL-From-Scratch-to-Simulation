@@ -4,7 +4,10 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+
+-- CUSTOMIZED PACKAGE
 use work.Pipeline_Types.all;
+use work.const_Types.all;
 
 entity MEM_STA is 
     Port (   

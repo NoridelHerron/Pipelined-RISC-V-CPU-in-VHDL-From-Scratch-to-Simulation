@@ -6,7 +6,10 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 -- CUSTOMIZED PACKAGE
+library work;
 use work.Pipeline_Types.all;
+use work.const_Types.all;
+use work.initialize_Types.all;
 
 entity MEM_TO_WB is
     Port ( 

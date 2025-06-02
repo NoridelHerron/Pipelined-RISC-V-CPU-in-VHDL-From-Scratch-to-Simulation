@@ -10,7 +10,10 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 -- CUSTOMIZED PACKAGE
+library work;
 use work.Pipeline_Types.all;
+use work.const_Types.all;
+use work.initialize_Types.all;
 
 entity EX_STAGE is
     Port (
@@ -27,7 +30,7 @@ architecture behavior of EX_STAGE is
     signal Ci_Bi       : std_logic      := '0';  -- Carry-in or B-invert flag, can be expanded
 
 begin
-
+    
     -- ALU computation
     alu_inst : entity work.ALU port map (
             A        => reg.reg_data1,

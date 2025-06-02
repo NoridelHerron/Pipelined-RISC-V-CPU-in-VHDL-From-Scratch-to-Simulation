@@ -4,10 +4,13 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 use std.env.all;
-use work.Pipeline_Types.all;
 
+-- CUSTOMIZED PACKAGE
 library work;
 use work.reusable_function.all;
+use work.Pipeline_Types.all;
+use work.const_Types.all;
+use work.initialize_Types.all;
 
 entity tb_CPU_RISCV is
 end tb_CPU_RISCV;

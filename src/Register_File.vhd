@@ -7,7 +7,12 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+
+-- CUSTOMIZED PACKAGE
+library work;
 use work.Pipeline_Types.all;
+use work.const_Types.all;
+
 
 entity RegisterFile is
     Generic( DATA_WIDTH     : natural    := DATA_WIDTH;
@@ -15,7 +20,6 @@ entity RegisterFile is
 			);
     Port ( -- inputs
            clk          : in  std_logic;
-           rst          : in  std_logic;
            -- Read or write
            write_enable : in  std_logic;
            -- For store
@@ -44,7 +48,7 @@ begin
     begin
         if rising_edge(clk) then
             if write_enable = '1' then
-                if write_addr /= "00000" then  -- prevent writing to x0
+                if write_addr /= ZERO_5bits then  -- prevent writing to x0
                     registers(to_integer(unsigned(write_addr))) <= write_data;
                 end if;
             end if;

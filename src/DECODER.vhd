@@ -5,12 +5,17 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+
+-- CUSTOMIZED PACKAGE
+library work;
 use work.Pipeline_Types.all;
+use work.const_Types.all;
+use work.initialize_Types.all;
 
 entity DECODER is
     Port (  -- inputs
             clk             : in  std_logic; 
-            reset           : in  std_logic;  -- added reset input
+            reset           : in  std_logic;  -- added reset input   
             IF_ID_STAGE     : in  PipelineStages_Inst_PC;   
             WB              : in  WB_Type; 
             ID              : out ID_EX_Type; 
@@ -22,13 +27,12 @@ architecture behavior of DECODER is
 
 signal ID_reg    : ID_EX_Type                                    := EMPTY_ID_EX_Type;
 signal reg       : reg_Type                                      := EMPTY_reg_Type;
-signal rs1_addr  : std_logic_vector(REG_ADDR_WIDTH - 1 downto 0) := (others => '0');
-signal rs2_addr  : std_logic_vector(REG_ADDR_WIDTH - 1 downto 0) := (others => '0');
+signal rs1_addr  : std_logic_vector(REG_ADDR_WIDTH - 1 downto 0) := ZERO_5bits;
+signal rs2_addr  : std_logic_vector(REG_ADDR_WIDTH - 1 downto 0) := ZERO_5bits;
  
 begin 
     REGISTER_UUT: entity work.RegisterFile
-        port map ( clk            => clk, 
-                   rst            => reset, 
+        port map ( clk            => clk,  
                    write_enable   => WB.write, 
                    write_addr     => WB.rd, 
                    write_data     => WB.data, 
@@ -49,24 +53,24 @@ begin
         ID_temp.op       := IF_ID_STAGE.instr(6 downto 0);
 
         -- defaults
-        ID_temp.store_rs2 := (others => '0'); 
+        ID_temp.store_rs2 := ZERO_32bits; 
         ID_temp.mem_write := '0';
         ID_temp.mem_read  := '0';
         ID_temp.reg_write := '1';
   
         if ID_temp.op = LOAD then 
             ID_temp.mem_read := '1';
-            ID_temp.funct3   := "000";
-            ID_temp.funct7   := "0000000";
+            ID_temp.funct3   := ZERO_3bits;
+            ID_temp.funct7   := ZERO_7bits;
         end if;
     
         if ID_temp.op = S_TYPE then 
             ID_temp.mem_write := '1';
             ID_temp.store_rs2 := reg.reg_data2;
-            ID_temp.funct3   := "000";
-            ID_temp.funct7   := "0000000";
+            ID_temp.funct3   := ZERO_3bits;
+            ID_temp.funct7   := ZERO_7bits;
         end if;   
-    
+        
         rs1_addr                <= ID_temp.rs1;
         rs2_addr                <= ID_temp.rs2;
         ID.rs1                  <= ID_temp.rs1;

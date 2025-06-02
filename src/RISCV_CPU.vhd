@@ -5,54 +5,55 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
-use work.Pipeline_Types.all;
 
--- CUSTOMIZED PACKAGE
+library work;
 use work.Pipeline_Types.all;
+use work.const_Types.all;
+use work.initialize_Types.all;
 
 entity RISCV_CPU is
-    Port (  clk                    : in std_logic;
-            reset                  : in std_logic;
+    Port (  clk             : in std_logic;
+            reset           : in std_logic;
             -- pc and instruction
-            IF_STAGE_out           : out PipelineStages_Inst_PC; 
-            ID_STAGE_out        : out PipelineStages_Inst_PC;
-            EX_STAGE_out        : out PipelineStages_Inst_PC;
-            MEM_STAGE_out       : out PipelineStages_Inst_PC;
-            WB_STAGE_out       : out PipelineStages_Inst_PC;
+            IF_STAGE_out    : out PipelineStages_Inst_PC; 
+            ID_STAGE_out    : out PipelineStages_Inst_PC;
+            EX_STAGE_out    : out PipelineStages_Inst_PC;
+            MEM_STAGE_out   : out PipelineStages_Inst_PC;
+            WB_STAGE_out    : out PipelineStages_Inst_PC;
             -- stage/registers
-            ID_EX_out              : out ID_EX_Type;
-            EX_MEM_out             : out EX_MEM_Type;   
-            MEM_WB_out             : out MEM_WB_Type;
-            WB_out                 : out WB_Type; 
+            ID_EX_out       : out ID_EX_Type;
+            EX_MEM_out      : out EX_MEM_Type;   
+            MEM_WB_out      : out MEM_WB_Type;
+            WB_out          : out WB_Type; 
             -- register source value
-            reg_out                : out reg_Type;  
+            reg_out         : out reg_Type;  
             -- data hazard solutions
-            num_stall              : out numStall;
-            Forward_out            : out FORWARD 
+            num_stall       : out numStall;
+            Forward_out     : out FORWARD 
          );
 end RISCV_CPU;
 
 architecture Behavioral of RISCV_CPU is
 
     -- data hazard handlers
-    signal Forward              : FORWARD                      := EMPTY_FORW_Type;
-    signal stall                : numStall                     := STALL_NONE;
+    signal Forward       : FORWARD                      := EMPTY_FORW_Type;
+    signal stall         : numStall                     := STALL_NONE;
    
     -- pc and instruction
-    signal IF_STAGE             : PipelineStages_Inst_PC        := EMPTY_inst_pc; 
-    signal ID_STAGE             : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal EX_STAGE             : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal MEM_STAGE            : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal WB_STAGE             : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal IF_STAGE      : PipelineStages_Inst_PC        := EMPTY_inst_pc; 
+    signal ID_STAGE      : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal EX_STAGE      : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal MEM_STAGE     : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal WB_STAGE      : PipelineStages_Inst_PC        := EMPTY_inst_pc;
  
     -- stage and in-between stages registers
-    signal ID                   : ID_EX_Type                    := EMPTY_ID_EX_Type;
-    signal ID_EX                : ID_EX_Type                    := EMPTY_ID_EX_Type;   
-    signal EX                   : EX_MEM_Type                   := EMPTY_EX_MEM_Type;
-    signal EX_MEM               : EX_MEM_Type                   := EMPTY_EX_MEM_Type; 
-    signal MEM                  : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
-    signal MEM_WB               : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
-    signal WB                   : WB_Type                       := EMPTY_WB_Type;
+    signal ID            : ID_EX_Type                    := EMPTY_ID_EX_Type;
+    signal ID_EX         : ID_EX_Type                    := EMPTY_ID_EX_Type;   
+    signal EX            : EX_MEM_Type                   := EMPTY_EX_MEM_Type;
+    signal EX_MEM        : EX_MEM_Type                   := EMPTY_EX_MEM_Type; 
+    signal MEM           : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
+    signal MEM_WB        : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
+    signal WB            : WB_Type                       := EMPTY_WB_Type;
     
     -- register data value from the register source 
     signal ID_reg               : reg_Type                      := EMPTY_reg_Type;
@@ -90,7 +91,6 @@ begin
         ID_EX           => ID_EX,
         EX_MEM          => EX_MEM, 
         MEM_WB          => MEM_WB, 
-        --stall_in        => stall,
         Forward         => Forward,
         stall_out       => stall 
     );
@@ -106,6 +106,7 @@ begin
     );
     
     FWD : entity work.Forwarding port map (
+        ID_EX_STAGE     => EX_STAGE,
         EX_MEM          => EX_MEM,
         WB              => WB,
         ID_EX           => ID_EX,

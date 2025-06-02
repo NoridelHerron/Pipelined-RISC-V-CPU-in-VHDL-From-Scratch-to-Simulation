@@ -6,13 +6,11 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 -- CUSTOMIZED PACKAGE
+library work;
 use work.Pipeline_Types.all;
+use work.const_Types.all;
 
 entity DATA_MEM is
-    Generic( DEPTH      : natural    := DEPTH;
-			 DATA_WIDTH : natural    := DATA_WIDTH;
-			 LOG2DEPTH  : natural    := LOG2DEPTH
-			);
     Port(
           clk        : in  std_logic;                                   -- Clock input, used to trigger synchronous writes
           mem_read   : in  std_logic;                                   -- Control signal - if '1', read from memory
@@ -39,7 +37,7 @@ begin
             if mem_read = '1' then
                 read_data <= mem(to_integer(unsigned(address)));
             else
-                read_data <= (others => '0');
+                read_data <= ZERO_32bits;
             end if;
         end if;
     end process;

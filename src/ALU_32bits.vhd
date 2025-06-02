@@ -8,7 +8,10 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
+-- CUSTOMIZED PACKAGE
+library work;
 use work.Pipeline_Types.all;
+use work.const_Types.all;
 -- use work.ALU_Constants_Pkg.all; -- I will clean this up later when I completed the necessary stuff
 
 entity ALU is

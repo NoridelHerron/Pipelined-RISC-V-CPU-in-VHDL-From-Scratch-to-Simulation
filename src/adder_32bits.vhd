@@ -6,7 +6,10 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+
+-- CUSTOMIZED PACKAGE
 use work.Pipeline_Types.all;
+use work.const_Types.all;
 
 -- 32-bit ripple-carry adder
 entity adder_32bits is

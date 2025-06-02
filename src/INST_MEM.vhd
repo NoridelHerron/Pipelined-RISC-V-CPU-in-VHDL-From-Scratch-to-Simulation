@@ -4,14 +4,16 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+
+library work;
 use work.Pipeline_Types.all;
+use work.const_Types.all;
 
 entity INST_MEM is
     Port (
-            clk    : in  std_logic; 
-            reset  : in  std_logic;  -- added reset input
-            addr   : in  std_logic_vector(31 downto 0);  -- byte address input
-            instr  : out std_logic_vector(31 downto 0)   -- instruction output
+            clk    : in  std_logic;        
+            addr   : in  std_logic_vector(DATA_WIDTH-1 downto 0);  -- byte address input
+            instr  : out std_logic_vector(DATA_WIDTH-1 downto 0)   -- instruction output
         );
 end INST_MEM;
 
@@ -35,9 +37,7 @@ begin
     -- synchronous read process
     process(clk)
     begin
-        if reset = '1' then
-            instr_reg <= (others => '0');
-        elsif rising_edge(clk) then  
+        if rising_edge(clk) then  
             instr_reg <= rom(to_integer(unsigned(addr(9 downto 2))));
         end if;
     end process;

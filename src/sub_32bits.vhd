@@ -6,7 +6,10 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+
+-- CUSTOMIZED PACKAGE
 use work.Pipeline_Types.all;
+use work.const_Types.all;
 
 entity sub_32bits is
     Generic( DATA_WIDTH     : natural    := DATA_WIDTH );
