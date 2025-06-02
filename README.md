@@ -9,7 +9,7 @@ Each pipeline stage—Instruction Fetch (IF), Decode (ID), Execute (EX), Memory 
 - Word-aligned memory interface with internal DATA_MEM
 - Pipeline registers for each stage 
 - Register file write-back with control signal handling
-- Hazard-aware architecture (forwarding implemented; built for future extensions such as stalls)
+- Hazard-aware architecture: full forwarding and stall handling implemented.
 - All design and testing done by me as a deep-dive into CPU architecture
 
 ## Tool Used
@@ -65,7 +65,7 @@ IF --> ID --> EX --> MEM --> WB
 - README.md
 
 ### Personal Note
-- I initially tried to follow existing RISC-V pipeline diagrams, but many of them did not provide enough detailed information for full implementation. To address this, I made several design modifications based on my own testing and understanding of hazard timing and pipeline behavior. The resulting pipeline reflects these practical adjustments.
+- I initially followed existing RISC-V pipeline diagrams, but found they lacked enough detailed information for full implementation. To address this, I made several design modifications based on my own testing and understanding of hazard timing and pipeline behavior. The resulting pipeline reflects these practical adjustments.
 
 - Once the project is complete, I plan to remove unnecessary signals from the record types in some of the stages. For now, I am keeping these extra signals to aid in debugging.
 
@@ -106,8 +106,7 @@ This ensures that the ID stage (hazard detection and forwarding) always receives
 ### Design Note: Forwarding
 - I chose not to pass the raw register values (reg_data1, reg_data2) through the ID/EX register.
 - Instead, I implemented bypass forwarding — the Forwarding MUX is placed after the ID/EX register, but it selects the correct operand based on current forwarding conditions.
-- This prevents data arriving late to ex stage.
-
+- This prevents stale or incorrect data from reaching EX_STAGE during forwarding.
 **Logic**: if EX_MEM.reg_write = '1' and EX_MEM.rd /= ZERO_5bits and EX_MEM.rd = ID_EX.rs1/ID_EX.rs2 then
                 Forward.A (or Forward.B) <= FORWARD_EX_MEM;
             elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= ZERO_5bits and MEM_WB.rd = ID_EX.rs1/ID_EX.rs2 then
@@ -121,9 +120,7 @@ When a stall is detected, I pass the stall signal to multiple stages:
 - In IF_STAGE and IF/ID, I hold the PC (PC is not updated).
 - In ID/EX, I also hold the PC value, but for debugging purposes, I inject a NOP into the pipeline:
 - The instruction type is set to the decoded NOP value.
-- The register source fields are set to 0 in the forwadi.
-
-Additionally, in the Forwarding MUX, I set the register operand values to 0 during a stall, to ensure that no unintended data or partial results propagate forward, and to prevent any ALU delay or spurious computation during the stalled cycle.
+-Additionally, in the Forwarding MUX, I set the register operand values to 0 during a stall, to ensure that no unintended data or partial results propagate forward, and to prevent any ALU delay or spurious computation during the stalled cycle.
 
 **Logic**: if ID_EX.mem_read = '1' and 
         (ID_EX.rd = ID.rs1 or ID_EX.rd = ID.rs2) then
@@ -150,10 +147,10 @@ Here’s how the pipeline filled after memory stabilize :
     
 This confirmed that my pipeline was flowing correctly: no stages were skipped, and instructions advanced in a staggered manner through the pipeline.
 
-**How did I verified stalling works?**
+**How did I verify stalling works?**
 - Made sure nop is inserted after load instruction.
 
-**How did I verified Forwading works?**
+**How did I verify Forwading works?**
 - Made sure the operands in ex_stage is what I expected.
 
 ## More DEBUGGING Strategies
