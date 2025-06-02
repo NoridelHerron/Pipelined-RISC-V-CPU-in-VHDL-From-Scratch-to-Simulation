@@ -12,7 +12,7 @@ Each pipeline stage—Instruction Fetch (IF), Decode (ID), Execute (EX), Memory 
 - Hazard-aware architecture (forwarding implemented; built for future extensions such as stalls)
 - All design and testing done by me as a deep-dive into CPU architecture
 
-# Tool Usedd
+## Tool Used
 Vivado version 24.2
 Vivado XSim (Built-in simulator, used for VHDL simulation and waveform viewing)
 
@@ -64,11 +64,10 @@ IF --> ID --> EX --> MEM --> WB
 - .gitignore
 - README.md
 
-## Personal Note
-I initially tried to follow existing RISC-V pipeline diagrams, but many of them did not provide enough detailed information for full implementation. To address this, I made several design modifications based on my own testing and understanding of hazard timing and pipeline behavior. The resulting pipeline reflects these practical adjustments.
+### Personal Note
+- I initially tried to follow existing RISC-V pipeline diagrams, but many of them did not provide enough detailed information for full implementation. To address this, I made several design modifications based on my own testing and understanding of hazard timing and pipeline behavior. The resulting pipeline reflects these practical adjustments.
 
-### Design Note:
-Once the project is complete, I plan to remove unnecessary signals from the record types in some of the stages. For now, I am keeping these extra signals to aid in debugging.
+- Once the project is complete, I plan to remove unnecessary signals from the record types in some of the stages. For now, I am keeping these extra signals to aid in debugging.
 
 ## Design Note — Control Signals
 Instead of passing the full opcode through the pipeline, I generate compact control signals during instruction decode. This reduces the number of bits transferred between stages and simplifies control logic in later stages.
@@ -109,6 +108,14 @@ This ensures that the ID stage (hazard detection and forwarding) always receives
 - Instead, I implemented bypass forwarding — the Forwarding MUX is placed after the ID/EX register, but it selects the correct operand based on current forwarding conditions.
 - This prevents stale register data from being latched into ID/EX during a stall. The EX_STAGE will always receive the correct operand — either forwarded or fresh — even if the pipeline is stalled.
 
+**Logic**: if EX_MEM.reg_write = '1' and EX_MEM.rd /= ZERO_5bits and EX_MEM.rd = ID_EX.rs1/ID_EX.rs2 then
+                Forward.A (or Forward.B) <= FORWARD_EX_MEM;
+            elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= ZERO_5bits and MEM_WB.rd = ID_EX.rs1/ID_EX.rs2 then
+                Forward.A (or Forward.B) <= FORWARD_MEM_WB;
+            else
+                Forward.A <= FORWARD_NONE;
+            end if;
+
 ### Design Note: Stall Handling
 When a stall is detected, I pass the stall signal to multiple stages:
 - In IF_STAGE and IF/ID, I hold the PC (PC is not updated).
@@ -118,12 +125,19 @@ When a stall is detected, I pass the stall signal to multiple stages:
 
 Additionally, in the Forwarding MUX, I set the register operand values to 0 during a stall, to ensure that no unintended data or partial results propagate forward, and to prevent any ALU delay or spurious computation during the stalled cycle.
 
+**Logic**: if ID_EX.mem_read = '1' and 
+        (ID_EX.rd = ID.rs1 or ID_EX.rd = ID.rs2) then
+            stall_out <= STALL_NEEDED;
+        else
+            stall_out <= STALL_NONE;
+        end if;
+
 ### Debug Tip:
 - I chose to inject a NOP into the ID/EX stage during a stall so that it is easy to visualize the stall in the waveform — the NOP acts as a clear marker.
 - This makes it obvious when the pipeline is holding due to a hazard, and prevents any misleading partial or invalid instruction from appearing downstream.
 - Setting the reg values to zero in the Forwarding MUX also helps ensure that EX_STAGE outputs remain stable and easy to interpret during stalls.
 
-![Register between IF and ID stage](EXPECTED_Pipeline) 
+![Pipeline with forwading and stalling](EXPECTED_Pipeline.png) 
 
 **How did I confirm the pipeline is working properly?** 
 To verify that the pipeline stages were functioning as intended, I observed the flow of instructions across each stage in the waveform viewer.
