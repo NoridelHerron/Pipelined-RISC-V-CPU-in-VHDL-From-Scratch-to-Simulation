@@ -121,7 +121,7 @@ When a stall is detected, I pass the stall signal to multiple stages:
 - In IF_STAGE and IF/ID, I hold the PC (PC is not updated).
 - In ID/EX, I also hold the PC value, but for debugging purposes, I inject a NOP into the pipeline:
 - The instruction type is set to the decoded NOP value.
--Additionally, in the Forwarding MUX, I set the register operand values to 0 during a stall, to ensure that no unintended data or partial results propagate forward, and to prevent any ALU delay or spurious computation during the stalled cycle.
+- Additionally, in the Forwarding MUX, I set the register operand values to 0 during a stall, to ensure that no unintended data or partial results propagate forward, and to prevent any ALU delay or spurious computation during the stalled cycle.
 
 **Logic**: if ID_EX.mem_read = '1' and 
         (ID_EX.rd = ID.rs1 or ID_EX.rd = ID.rs2) then
@@ -133,7 +133,7 @@ When a stall is detected, I pass the stall signal to multiple stages:
 ### Debug Tip:
 - I chose to inject a NOP into the ID/EX stage during a stall so that it is easy to visualize the stall in the waveform — the NOP acts as a clear marker.
 - This makes it obvious when the pipeline is holding due to a hazard, and prevents any misleading partial or invalid instruction from appearing downstream.
-- Setting the reg values to zero in the Forwarding MUX also helps ensure that EX_STAGE outputs remain stable and easy to interpret during stalls.
+- Setting the reg values to zero in the Forwarding MUX also helps ensure that EX_STAGE outputs 0 during stalls.
 
 ![Pipeline with forwading and stalling](images/EXPECTED_Pipeline.png) 
 
