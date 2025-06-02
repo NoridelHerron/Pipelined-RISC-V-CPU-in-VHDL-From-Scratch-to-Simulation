@@ -107,6 +107,7 @@ This ensures that the ID stage (hazard detection and forwarding) always receives
 - I chose not to pass the raw register values (reg_data1, reg_data2) through the ID/EX register.
 - Instead, I implemented bypass forwarding — the Forwarding MUX is placed after the ID/EX register, but it selects the correct operand based on current forwarding conditions.
 - This prevents stale or incorrect data from reaching EX_STAGE during forwarding.
+
 **Logic**: if EX_MEM.reg_write = '1' and EX_MEM.rd /= ZERO_5bits and EX_MEM.rd = ID_EX.rs1/ID_EX.rs2 then
                 Forward.A (or Forward.B) <= FORWARD_EX_MEM;
             elsif MEM_WB.reg_write = '1' and MEM_WB.rd /= ZERO_5bits and MEM_WB.rd = ID_EX.rs1/ID_EX.rs2 then
