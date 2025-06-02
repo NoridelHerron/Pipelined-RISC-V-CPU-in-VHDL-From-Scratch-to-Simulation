@@ -83,7 +83,7 @@ If anyone has recommendations or best practices for control signal encoding in p
 ### Design Note — IF STAGE
 **Observation**: 
 - After reset, you will see instructions at index 0 appear twice — this is normal and caused by the memory’s initial response delay.
-- When the PC is first updated to 0, the instruction memory takes one cycle to output the correct value. In that first cycle, the memory output is still either undefined or an old/default value (often 0).
+- When the PC is first updated to 0, the instruction memory takes one cycle to output the correct value. In that first cycle, the memory output is the instruction at index 0.
 - On the next cycle, with PC still at 0, the memory now outputs the correct instruction at index 0 — this is why you see index 0 twice in the waveform.
 - After this initial delay, the following instructions will flow normally:
 - Each time PC is updated (PC = 4, PC = 8, etc.), the corresponding instruction will appear on the next cycle — this one-cycle phase delay between PC and instruction is normal for synchronous memory systems.
