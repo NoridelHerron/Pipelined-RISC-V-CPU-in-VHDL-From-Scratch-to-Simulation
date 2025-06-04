@@ -135,12 +135,12 @@ begin
 
         -- Common flag logic for non-ADD/SUB operations
         if func_3 /= 0then         
-            if res_temp = "00000000000000000000000000000000" then
+            if res_temp = ZERO_32bits then
                 Z_flag <= '1';
             else
                 Z_flag <= '0';
             end if;
-            N_flag <= res_temp(31); 
+            N_flag <= res_temp(DATA_WIDTH - 1); 
             V_flag <= '0'; 
             C_flag <= '0';      
         end if;
