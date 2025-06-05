@@ -51,6 +51,7 @@ package Pipeline_Types is
         mem_write   : std_logic;
         br_target   : std_logic_vector(DATA_WIDTH-1 downto 0); 
         is_branch   : std_logic;
+        ret_address : std_logic_vector(DATA_WIDTH-1 downto 0); 
     end record;
     
     type EX_MEM_Type is record

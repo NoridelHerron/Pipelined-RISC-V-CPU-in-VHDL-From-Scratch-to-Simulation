@@ -26,7 +26,8 @@ package initialize_Types is
         mem_read    => '0',
         mem_write   => '0',
         br_target   => (others => '0'), 
-        is_branch   => '0'
+        is_branch   => '0',
+        ret_address => (others => '0')
     );
     
     constant EMPTY_EX_MEM_Type : EX_MEM_Type := (  
@@ -80,7 +81,8 @@ package initialize_Types is
         mem_read    => '0',
         mem_write   => '0',
         br_target   => (others => '0'), 
-        is_branch   => '0'
+        is_branch   => '0',
+        ret_address => (others => '0')
     );
       
 end package;
