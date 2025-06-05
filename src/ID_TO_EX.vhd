@@ -17,7 +17,7 @@ entity ID_TO_EX is
             reset           : in  std_logic;   
             stall           : in  numStall;    
             ID_STAGE        : in  PipelineStages_Inst_PC;
-            ID              : in  ID_EX_Type; 
+            ID              : in  ID_EX_Type;     
             ID_EX_STAGE     : out PipelineStages_Inst_PC;  
             ID_EX           : out ID_EX_Type 
           );
@@ -39,17 +39,16 @@ begin
                 -- STALL → insert NOP into ID_EX
                 ID_EX_STAGE_reg.pc    <= ID_EX_STAGE_reg.pc;
                 ID_EX_STAGE_reg.instr <= NOP;
-                ID_EX_reg             <= insert_NOP;  -- NOP control signals
+                ID_EX_reg             <= insert_NOP;  -- NOP control signals       
             else
                 -- Normal advance
                 ID_EX_STAGE_reg <= ID_STAGE;
-                ID_EX_reg       <= ID;
+                ID_EX_reg       <= ID;     
             end if;
         end if;
     end process;
 
     
-    ID_EX_STAGE <= ID_EX_STAGE_reg;
-    ID_EX       <= ID_EX_reg;
-
+    ID_EX_STAGE     <= ID_EX_STAGE_reg;
+    ID_EX           <= ID_EX_reg;
 end Behavioral;

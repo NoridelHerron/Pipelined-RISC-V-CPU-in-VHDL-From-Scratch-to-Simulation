@@ -8,7 +8,7 @@ package initialize_Types is
     
     -- Initialize all 
     constant EMPTY_inst_pc : PipelineStages_Inst_PC := (
-        instr       => (others => '0'),
+        instr       => x"00000013",
         pc          => (others => '0')
     );
     
@@ -25,12 +25,11 @@ package initialize_Types is
         reg_write   => '0',
         mem_read    => '0',
         mem_write   => '0',
+        br_target   => (others => '0'), 
         is_branch   => '0'
     );
     
-    constant EMPTY_EX_MEM_Type : EX_MEM_Type := (
-        reg_data1   => (others => '0'),
-        reg_data2   => (others => '0'),
+    constant EMPTY_EX_MEM_Type : EX_MEM_Type := (  
         result      => (others => '0'),
         flags       => (others => '0'),  
         op          => (others => '0'),
@@ -38,8 +37,7 @@ package initialize_Types is
         store_rs2   => (others => '0'),
         reg_write   => '0',
         mem_read    => '0',
-        mem_write   => '0',
-        is_flush    => '0'  
+        mem_write   => '0' 
     );
     
     constant EMPTY_MEM_WB_Type : MEM_WB_Type := (
@@ -81,6 +79,7 @@ package initialize_Types is
         reg_write   => '0',
         mem_read    => '0',
         mem_write   => '0',
+        br_target   => (others => '0'), 
         is_branch   => '0'
     );
       

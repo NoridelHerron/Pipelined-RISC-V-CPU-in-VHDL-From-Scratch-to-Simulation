@@ -16,6 +16,7 @@ entity IF_TO_ID is
     Port (
             clk             : in  std_logic; 
             reset           : in  std_logic; 
+            flush           : in  std_logic; 
             stall           : in  numStall;  
             IF_STAGE        : in  PipelineStages_Inst_PC;
             IF_ID_STAGE     : out PipelineStages_Inst_PC
@@ -35,8 +36,13 @@ begin
                 -- HOLD current value during stall!
                 IF_ID_STAGE_reg    <= IF_ID_STAGE_reg;
             else
+                if flush = '1' then
+                    IF_ID_STAGE_reg.instr <= NOP; 
+                    IF_ID_STAGE_reg.pc    <= IF_ID_STAGE_reg.pc; 
+                else
                 -- Normal advance
-                IF_ID_STAGE_reg <= IF_STAGE;
+                    IF_ID_STAGE_reg <= IF_STAGE;
+                end if;
             end if;
         end if;
     end process;

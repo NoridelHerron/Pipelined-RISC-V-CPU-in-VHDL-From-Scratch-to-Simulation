@@ -49,12 +49,11 @@ package Pipeline_Types is
         reg_write   : std_logic;
         mem_read    : std_logic;
         mem_write   : std_logic;
+        br_target   : std_logic_vector(DATA_WIDTH-1 downto 0); 
         is_branch   : std_logic;
     end record;
     
     type EX_MEM_Type is record
-        reg_data1   : std_logic_vector(DATA_WIDTH-1 downto 0);      -- register source 1 value
-        reg_data2   : std_logic_vector(DATA_WIDTH-1 downto 0);      -- register source 2 value
         result      : std_logic_vector(DATA_WIDTH-1 downto 0);      -- ALU result
         flags       : std_logic_vector(FLAG_WIDTH-1 downto 0);      -- ZVNC Flags
         op          : std_logic_vector(OPCODE_WIDTH-1 downto 0);    -- opcode  
@@ -63,7 +62,6 @@ package Pipeline_Types is
         reg_write   : std_logic;
         mem_read    : std_logic;
         mem_write   : std_logic;
-        is_flush    : std_logic;
     end record;
     
     type MEM_WB_Type is record

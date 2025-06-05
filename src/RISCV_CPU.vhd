@@ -59,12 +59,14 @@ architecture Behavioral of RISCV_CPU is
     signal ID_reg               : reg_Type                      := EMPTY_reg_Type;
     -- data value from either register source or value forwarded
     signal EX_reg               : reg_Type                      := EMPTY_reg_Type;
-    
+    signal is_flush             : std_logic                     := '0';
 begin
  
     IF_STAG : entity work.IF_STA port map (
         clk             => clk,
         reset           => reset,
+        flush           => is_flush,
+        br_target       => ID_EX.br_target,
         stall           => stall,
         IF_STAGE        => IF_STAGE      
     );
@@ -72,7 +74,8 @@ begin
     IF_TO_ID_STAGE : entity work.IF_TO_ID port map (
         clk            => clk,
         reset          => reset, 
-        stall           => stall,
+        flush          => is_flush, 
+        stall          => stall,
         IF_STAGE       => IF_STAGE,
         IF_ID_STAGE    => ID_STAGE        
     );
@@ -96,19 +99,22 @@ begin
         reset           => reset,  
         stall           => stall,  
         ID_STAGE        => ID_STAGE,
-        ID              => ID,
+        ID              => ID, 
         ID_EX_STAGE     => EX_STAGE,
         ID_EX           => ID_EX
     );
     
     EX_ST : entity work.EX_STAGE port map (
+        is_branch       => ID_EX.is_branch,
         ID_EX_STAGE     => EX_STAGE,
         EX_MEM          => EX_MEM,
         WB              => WB,
         ID_EX           => ID_EX,
         Forward         => Forward,
         reg_in          => ID_reg,
-        EX              => EX        
+        EX              => EX, 
+        reg_out         => EX_reg,
+        is_flush        => is_flush      
     ); 
     
     EX_TO_MEM_STAGE : entity work.EX_TO_MEM port map (

@@ -29,7 +29,7 @@ end ID_STA;
 
 architecture Behavioral of ID_STA is
 
-signal ID_reg          : ID_EX_Type := EMPTY_ID_EX_Type;
+signal ID_reg          : ID_EX_Type     := EMPTY_ID_EX_Type;
 begin
     
     DECODE : entity work.DECODER port map (
@@ -50,6 +50,5 @@ begin
         stall_out       => stall_out
     );
     
-    ID <= ID_reg;
-
+    ID          <= ID_reg;
 end Behavioral;

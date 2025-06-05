@@ -28,7 +28,8 @@ package const_Types is
     constant ZERO_1bit      : std_logic                                   := '0';
     
     -- NOP
-    constant NOP    : std_logic_vector(DATA_WIDTH-1 downto 0) := x"00000013";
+    constant NOP            : std_logic_vector(DATA_WIDTH-1 downto 0) := x"00000013";
+
     -- OPCODE TYPE
     constant R_TYPE : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "0110011";
     constant I_IMME : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "0010011";
