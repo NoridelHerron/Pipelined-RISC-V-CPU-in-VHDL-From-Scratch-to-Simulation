@@ -101,7 +101,7 @@ begin
         ID_EX           => ID_EX
     );
     
-    EX_ST : entity work.EX_STAG port map (
+    EX_ST : entity work.EX_STAGE port map (
         ID_EX_STAGE     => EX_STAGE,
         EX_MEM          => EX_MEM,
         WB              => WB,

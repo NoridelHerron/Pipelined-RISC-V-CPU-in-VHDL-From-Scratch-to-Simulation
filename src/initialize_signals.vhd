@@ -20,9 +20,12 @@ package initialize_Types is
         rs1         => (others => '0'),
         rs2         => (others => '0'),
         rd          => (others => '0'), 
+        imm         => (others => '0'), 
+        immJ        => (others => '0'), 
         reg_write   => '0',
         mem_read    => '0',
-        mem_write   => '0'
+        mem_write   => '0',
+        is_branch   => '0'
     );
     
     constant EMPTY_EX_MEM_Type : EX_MEM_Type := (
@@ -35,7 +38,8 @@ package initialize_Types is
         store_rs2   => (others => '0'),
         reg_write   => '0',
         mem_read    => '0',
-        mem_write   => '0'   
+        mem_write   => '0',
+        is_flush    => '0'  
     );
     
     constant EMPTY_MEM_WB_Type : MEM_WB_Type := (
@@ -72,9 +76,12 @@ package initialize_Types is
         rs1         => (others => '0'),
         rs2         => (others => '0'),
         rd          => (others => '0'), 
+        imm         => (others => '0'), 
+        immJ        => (others => '0'), 
         reg_write   => '0',
         mem_read    => '0',
-        mem_write   => '0'
+        mem_write   => '0',
+        is_branch   => '0'
     );
       
 end package;

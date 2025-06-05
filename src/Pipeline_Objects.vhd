@@ -44,9 +44,12 @@ package Pipeline_Types is
         rs1         : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);  -- register source 1
 	    rs2         : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);  -- register source 2
         rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);  -- register destination
+        imm         : std_logic_vector(IMM_WIDTH-1 downto 0); 
+        immJ        : std_logic_vector(19 downto 0);
         reg_write   : std_logic;
         mem_read    : std_logic;
         mem_write   : std_logic;
+        is_branch   : std_logic;
     end record;
     
     type EX_MEM_Type is record
@@ -60,6 +63,7 @@ package Pipeline_Types is
         reg_write   : std_logic;
         mem_read    : std_logic;
         mem_write   : std_logic;
+        is_flush    : std_logic;
     end record;
     
     type MEM_WB_Type is record

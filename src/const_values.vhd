@@ -17,8 +17,10 @@ package const_Types is
     constant DEPTH          : integer := 4;
     constant LOG2DEPTH      : integer := 2;
     constant IMM_WIDTH      : integer := 12;
+    constant IMMJ_WIDTH     : integer := 20;
     
     constant ZERO_32bits    : std_logic_vector(DATA_WIDTH-1 downto 0)     := (others => '0');
+    constant ZERO_20bits    : std_logic_vector(IMMJ_WIDTH-1 downto 0)     := (others => '0');
     constant ZERO_12bits    : std_logic_vector(IMM_WIDTH-1 downto 0)      := (others => '0');
     constant ZERO_5bits     : std_logic_vector(REG_ADDR_WIDTH-1 downto 0) := (others => '0');
     constant ZERO_7bits     : std_logic_vector(FUNCT7_WIDTH-1 downto 0)   := (others => '0');
@@ -33,6 +35,7 @@ package const_Types is
     constant LOAD   : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "0000011";
     constant S_TYPE : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "0100011";
     constant B_TYPE : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "1100011";
+    constant J_TYPE : std_logic_vector(OPCODE_WIDTH-1 downto 0) := "1101111";
     
     constant ENABLE_FORWARDING : boolean := true;
     --constant ENABLE_FORWARDING : boolean := false;

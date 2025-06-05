@@ -27,7 +27,7 @@ process (ID_EX_STAGE, Forward, EX_MEM, WB, reg_in, ID_EX)
 begin
 
     -- Default: zero both outputs during stall (NOP is being injected)
-    if ID_EX_STAGE.instr = NOP then
+    if ID_EX_STAGE.instr = NOP or ID_EX.op = B_TYPE or ID_EX.op = J_TYPE then
         reg_out.reg_data1 <= ZERO_32bits;
         reg_out.reg_data2 <= ZERO_32bits;
 
@@ -54,9 +54,9 @@ begin
                     when R_TYPE => 
                         reg_out.reg_data2 <= reg_in.reg_data2;
                     when I_IMME | LOAD =>
-                        reg_out.reg_data2 <= std_logic_vector(resize(signed(ID_EX.funct7 & ID_EX.rs2), 32));
+                        reg_out.reg_data2 <= std_logic_vector(resize(signed(ID_EX.imm), 32));
                     when S_TYPE => 
-                        reg_out.reg_data2 <= std_logic_vector(resize(signed(ID_EX.funct7 & ID_EX.rd), 32));
+                        reg_out.reg_data2 <= std_logic_vector(resize(signed(ID_EX.imm), 32));
                     when others => 
                         reg_out.reg_data2 <= (others => '0');
                 end case;

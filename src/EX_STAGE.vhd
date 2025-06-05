@@ -17,9 +17,14 @@ use work.initialize_Types.all;
 
 entity EX_STAGE is
     Port (
-            reg         : in reg_Type;
-            ID_EX       : in ID_EX_Type;
-            EX          : out EX_MEM_Type
+            ID_EX_STAGE : in  PipelineStages_Inst_PC; 
+            EX_MEM      : in  EX_MEM_Type;
+            WB          : in  WB_Type; 
+            ID_EX       : in  ID_EX_Type; 
+            Forward     : in  FORWARD;      
+            reg_in      : in  reg_Type;  
+            EX          : out EX_MEM_Type;
+            reg_out     : out reg_Type          
           );
 end EX_STAGE;
 
@@ -27,9 +32,27 @@ architecture behavior of EX_STAGE is
 
     -- Internal signals
     signal EX_reg      : EX_MEM_Type    := EMPTY_EX_MEM_Type;
+    signal reg         : reg_Type       := EMPTY_reg_Type;
     signal Ci_Bi       : std_logic      := '0';  -- Carry-in or B-invert flag, can be expanded
 
 begin
+    
+    FWD : entity work.Forwarding port map (
+        ID_EX_STAGE     => ID_EX_STAGE,
+        EX_MEM          => EX_MEM,
+        WB              => WB,
+        ID_EX           => ID_EX,
+        Forward         => Forward,
+        reg_in          => reg_in,
+        reg_out         => reg
+    );
+    
+    isFlush : entity work.BRANCHING port map (
+        reg_in      => reg,
+        is_branch   => ID_EX.is_branch,
+        f3          => ID_EX.funct3,
+        is_flush    => EX_reg.is_flush
+    );
     
     -- ALU computation
     alu_inst : entity work.ALU port map (
@@ -45,10 +68,13 @@ begin
             N_flag   => EX_reg.flags(FLAG_WIDTH - 4)
         );
         
+    
+        
     EX.reg_data1  <= reg.reg_data1;
     EX.reg_data2  <= reg.reg_data2;
     EX.result     <= EX_reg.result;
     EX.flags      <= EX_reg.flags;   
+    EX.is_flush   <= EX_reg.is_flush;   
     EX.op         <= ID_EX.op;
     EX.rd         <= ID_EX.rd;
     EX.store_rs2  <= ID_EX.store_rs2;
