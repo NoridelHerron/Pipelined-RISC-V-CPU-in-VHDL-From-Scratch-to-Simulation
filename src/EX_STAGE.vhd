@@ -64,7 +64,7 @@ begin
             C_flag   => EX_reg.flags(FLAG_WIDTH - 3),
             N_flag   => EX_reg.flags(FLAG_WIDTH - 4)
         );
-    
+
     is_branch <= ID_EX.is_branch; 
       
     BRANCH : entity work.BRANCHING port map (

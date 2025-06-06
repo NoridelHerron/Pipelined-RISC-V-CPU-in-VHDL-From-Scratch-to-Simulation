@@ -48,7 +48,7 @@ begin
                 pc_current      <= pc_fetch;
                 temp_reg.pc     <= pc_current; 
             elsif flush = '1' then      
-                pc_fetch    <= br_target;
+                pc_fetch        <= br_target;
                 temp_reg.instr  <= NOP;
                 pc_current      <= pc_fetch;
                 temp_reg.pc     <= pc_current; 
