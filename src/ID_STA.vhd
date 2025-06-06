@@ -32,6 +32,7 @@ architecture Behavioral of ID_STA is
 signal ID_reg          : ID_EX_Type     := EMPTY_ID_EX_Type;
 begin
     
+    -- Decode the instruction, store wb to register, and send rs value
     DECODE : entity work.DECODER port map (
         clk             => clk,
         reset           => reset,
@@ -41,6 +42,7 @@ begin
         reg_out         => reg_out 
     );
     
+    -- Determine data hazard
     HDU : entity work.Haz_det_unit port map (    
         ID              => ID_reg, 
         ID_EX           => ID_EX,

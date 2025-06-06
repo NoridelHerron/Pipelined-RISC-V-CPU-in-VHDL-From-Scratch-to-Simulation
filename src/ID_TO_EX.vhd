@@ -42,15 +42,14 @@ begin
                 ID_EX_STAGE_reg.instr <= NOP;
                 ID_EX_reg             <= insert_NOP;  -- NOP control signals       
             else
-                if flush = '1' then
-                   -- ID_EX_STAGE_reg.pc    <= ID_EX_STAGE_reg.pc;
-                   -- ID_EX_STAGE_reg.instr <= NOP;
+                -- replace the instruction with NOP and make pc = 0
+                if flush = '1' then   
                    ID_EX_STAGE_reg        <= EMPTY_inst_pc;
                     ID_EX_reg             <= insert_NOP;  -- NOP control signals  
                 else   
-                -- Normal advance
-                ID_EX_STAGE_reg <= ID_STAGE;
-                ID_EX_reg       <= ID;     
+                    -- Normal advance
+                    ID_EX_STAGE_reg <= ID_STAGE;
+                    ID_EX_reg       <= ID;     
                 end if;
             end if;
         end if;

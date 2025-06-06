@@ -42,18 +42,22 @@ begin
             temp_reg.instr  <= NOP;
             
         elsif rising_edge(clk) then
-            if pc_fetch = ZERO_32bits then
-                temp_reg.instr  <= NOP; 
-                pc_fetch    <= std_logic_vector(unsigned(pc_fetch) + 4);
-                pc_current      <= pc_fetch;
-                temp_reg.pc     <= pc_current; 
-            elsif flush = '1' then      
+            -- handle jump and branch
+            if flush = '1' then      
                 pc_fetch        <= br_target;
                 temp_reg        <= EMPTY_inst_pc;
                 pc_current      <= pc_fetch; 
+               
             elsif stall = STALL_NONE then
-                temp_reg.instr  <= instr_fetched;
-                pc_fetch    <= std_logic_vector(unsigned(pc_fetch) + 4);
+                -- this will make sure there's no duplicate after reset
+                if pc_fetch = ZERO_32bits then
+                    temp_reg.instr  <= NOP; 
+                    pc_fetch    <= std_logic_vector(unsigned(pc_fetch) + 4);   
+                else
+                    -- normal flow
+                    temp_reg.instr  <= instr_fetched;
+                    pc_fetch    <= std_logic_vector(unsigned(pc_fetch) + 4);
+                end if;
                 pc_current      <= pc_fetch;
                 temp_reg.pc     <= pc_current; 
             end if;

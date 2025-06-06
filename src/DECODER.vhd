@@ -47,6 +47,7 @@ begin
     variable imm_J          : std_logic_vector(IMMJ_WIDTH-1 downto 0) := (others => '0');
     variable imm_B          : std_logic_vector(IMM_WIDTH-1 downto 0)  := (others => '0');
     begin 
+        -- this handle the flushed instruction.
         if IF_ID_STAGE.instr = NOP then
             ID_temp := EMPTY_ID_EX_Type;    
         else
@@ -68,7 +69,9 @@ begin
             ID_temp.mem_read        := '0';
             ID_temp.reg_write       := '1';
             ID_temp.is_branch    := '0'; 
-      
+            
+            -- I forced some values to 0 for debugging purpose since some type doesn't have all pieces needed.
+            -- like for I-type it doesn't use rs2 and func7
             case ID_temp.op is
                 when I_IMME =>
                     ID_temp.imm          := ID_temp.funct7 & ID_temp.rs2;
@@ -110,10 +113,12 @@ begin
                     ID_temp.reg_write    := '0';    
             end case;  
         end if;
-        reg_out.reg_data1       <= reg.reg_data1;
-        reg_out.reg_data2       <= reg.reg_data2;
+        -- since we cannot use the ID.rs1 or ID.rs2, we have to use another signal to send to the register.
         rs1_addr                <= ID_temp.rs1;
         rs2_addr                <= ID_temp.rs2;
+        -- output
+        reg_out.reg_data1       <= reg.reg_data1;
+        reg_out.reg_data2       <= reg.reg_data2;
         ID                      <= ID_temp;
 
     end process;

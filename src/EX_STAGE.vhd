@@ -40,6 +40,7 @@ architecture behavior of EX_STAGE is
 
 begin
     
+    -- Forward the right data of the register source
     FWD : entity work.Forwarding port map (
         ID_EX_STAGE     => ID_EX_STAGE,
         EX_MEM          => EX_MEM,
@@ -49,7 +50,6 @@ begin
         reg_in          => reg_in,
         reg_out         => reg
     );
-    
     
     -- ALU computation
     alu_inst : entity work.ALU port map (
@@ -66,7 +66,8 @@ begin
         );
 
     is_branch <= ID_EX.is_branch; 
-      
+    
+    -- determine if branch condition is true
     BRANCH : entity work.BRANCHING port map (
         flags           => EX_reg.flags,
         is_branch       => is_branch, 
@@ -74,6 +75,7 @@ begin
         is_flush        => flush
     ); 
  
+    -- determine which flush instruction based on opcode type
     process (flush, ID_EX.op)
     begin
         if ID_EX.op = B_TYPE then
@@ -85,7 +87,7 @@ begin
         end if;
     end process;
            
-    reg_out         <= reg;
+    reg_out         <= reg; -- this is for debugging purpose
     EX.result       <= ID_EX.ret_address when ID_EX.op = J_TYPE else EX_reg.result;
     EX.flags        <= EX_reg.flags;   
     EX.op           <= ID_EX.op;

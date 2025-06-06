@@ -36,6 +36,7 @@ begin
                 -- HOLD current value during stall!
                 IF_ID_STAGE_reg    <= IF_ID_STAGE_reg;
             else
+                -- replace the instruction with NOP and make pc = 0
                 if flush = '1' then
                     IF_ID_STAGE_reg <= EMPTY_inst_pc;
                 else

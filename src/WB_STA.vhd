@@ -20,7 +20,7 @@ end WB_STA;
 architecture Behavioral of WB_STA is
 
 begin
-
+    -- chooses which data to send based on the control signal
     process(MEM_WB)
     begin
         if MEM_WB.reg_write = '1' and MEM_WB.mem_read = '1'then
