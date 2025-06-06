@@ -29,7 +29,7 @@ architecture read_only of INST_MEM is
         5  => x"00200293", -- addi x5, x0, 2
         6  => x"00300313", -- addi x6, x0, 3
         7  => x"00400393", -- addi x7, x0, 4
-        8  => x"014000EF", -- jal x1, 10 
+        8  => x"004000EF", -- jal x1, 4 
         9  => x"00500413",  -- addi x8, x0, 5
         10 => x"00600493",  -- addi x9, x0, 6 
         others => x"00000013"  -- nop (ADDI x0, x0, 0)

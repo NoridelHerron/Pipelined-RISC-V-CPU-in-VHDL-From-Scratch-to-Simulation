@@ -17,7 +17,6 @@ use work.initialize_Types.all;
 
 entity EX_STAGE is
     Port (
-            is_branch   : in std_logic;
             ID_EX_STAGE : in  PipelineStages_Inst_PC; 
             EX_MEM      : in  EX_MEM_Type;
             WB          : in  WB_Type; 
@@ -37,6 +36,7 @@ architecture behavior of EX_STAGE is
     signal reg         : reg_Type       := EMPTY_reg_Type;
     signal Ci_Bi       : std_logic      := '0';  -- Carry-in or B-invert flag, can be expanded
     signal flush       : std_logic      := '0'; 
+    signal is_branch   : std_logic      := '0'; 
 
 begin
     
@@ -50,12 +50,6 @@ begin
         reg_out         => reg
     );
     
-    BRANCH : entity work.BRANCHING port map (
-        reg             => reg,
-        is_branch       => is_branch, 
-        f3              => ID_EX.funct3,
-        is_flush        => flush
-    ); 
     
     -- ALU computation
     alu_inst : entity work.ALU port map (
@@ -71,6 +65,15 @@ begin
             N_flag   => EX_reg.flags(FLAG_WIDTH - 4)
         );
     
+    is_branch <= ID_EX.is_branch; 
+      
+    BRANCH : entity work.BRANCHING port map (
+        flags           => EX_reg.flags,
+        is_branch       => is_branch, 
+        f3              => ID_EX.funct3,
+        is_flush        => flush
+    ); 
+ 
     is_flush      <= flush;        
     reg_out       <= reg;
     EX.result     <= EX_reg.result;

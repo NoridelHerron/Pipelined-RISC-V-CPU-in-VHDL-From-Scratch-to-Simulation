@@ -44,7 +44,7 @@ begin
         elsif rising_edge(clk) then
             if pc_fetch = ZERO_32bits then
                 temp_reg.instr  <= NOP; 
-                pc_fetch        <= std_logic_vector(unsigned(pc_fetch) + 4);
+                pc_fetch    <= std_logic_vector(unsigned(pc_fetch) + 4);
                 pc_current      <= pc_fetch;
                 temp_reg.pc     <= pc_current; 
             elsif flush = '1' then      

@@ -26,7 +26,8 @@ entity RISCV_CPU is
             MEM_WB_out      : out MEM_WB_Type;
             WB_out          : out WB_Type; 
             -- register source value
-            reg_out         : out reg_Type;  
+            reg_out         : out reg_Type;
+            flush           : out std_logic;  
             -- data hazard solutions
             num_stall       : out numStall;
             Forward_out     : out FORWARD 
@@ -97,6 +98,7 @@ begin
     ID_TO_EX_STAGE : entity work.ID_TO_EX port map (
         clk             => clk,
         reset           => reset,  
+        flush           => is_flush, 
         stall           => stall,  
         ID_STAGE        => ID_STAGE,
         ID              => ID, 
@@ -105,7 +107,6 @@ begin
     );
     
     EX_ST : entity work.EX_STAGE port map (
-        is_branch       => ID_EX.is_branch,
         ID_EX_STAGE     => EX_STAGE,
         EX_MEM          => EX_MEM,
         WB              => WB,
@@ -161,5 +162,5 @@ begin
     WB_out              <= WB;
     num_stall           <= stall;
     Forward_out         <= Forward; 
-
+    flush               <= is_flush; 
 end Behavioral;

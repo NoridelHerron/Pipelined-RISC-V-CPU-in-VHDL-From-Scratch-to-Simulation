@@ -29,6 +29,7 @@ architecture sim of tb_CPU_RISCV is
     signal ID_EX            : ID_EX_Type                    := EMPTY_ID_EX_Type;  
     signal ID_reg           : reg_Type                      := EMPTY_reg_Type;
     signal EX_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
+    signal is_flush         : std_logic                     := '0';
     signal EX_MEM           : EX_MEM_Type                   := EMPTY_EX_MEM_Type; 
     signal MEM_STAGE        : PipelineStages_Inst_PC        := EMPTY_inst_pc;
     signal MEM_WB           : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
@@ -50,6 +51,7 @@ begin
                     MEM_WB_out          => MEM_WB,
                     WB_out              => WB,
                     reg_out             => ID_reg,
+                    flush               => is_flush,
                     num_stall           => stall,
                     Forward_out         => Forward    
                  );
