@@ -21,17 +21,12 @@ architecture read_only of INST_MEM is
 
     type memory_array is array (0 to 255) of std_logic_vector(31 downto 0);
     signal rom : memory_array := (
-        0  => x"00010A63", -- beq x2, x0, 10
-        1  => x"00A00093", -- addi x1, x0, 10
-        2  => x"01400193", -- addi x3, x0, 20  
-        3  => x"00008063", -- beq x1, x0, 0 
-        4  => x"00100213",  -- addi x4, x0, 1
-        5  => x"00200293", -- addi x5, x0, 2
-        6  => x"00300313", -- addi x6, x0, 3
-        7  => x"00400393", -- addi x7, x0, 4
-        8  => x"014000EF", -- jal x1, 10 
-        9  => x"00500413",  -- addi x8, x0, 5
-        10 => x"00600493",  -- addi x9, x0, 6 
+        0 => x"00A00093", -- addi x1, x0, 10
+        1 => x"01400113", -- addi x2, x0, 20
+       -- 2 => x"0000a183", -- lw x3, 0(x1)  <-- LOAD → WILL CAUSE STALL!!!
+        2 => x"0080a183", -- lw x3, 8(x1)  <-- LOAD → WILL CAUSE STALL!!!
+        3 => x"00118333", -- add x6, x3, x1 --> DEPENDENT on x3 → NOP will be inserted here!
+        4 => x"002082B3",  -- add x5, x1, x2 (independent → should proceed normally)    
         others => x"00000013"  -- nop (ADDI x0, x0, 0)
     );
 

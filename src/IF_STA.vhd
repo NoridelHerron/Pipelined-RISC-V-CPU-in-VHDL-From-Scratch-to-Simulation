@@ -27,6 +27,7 @@ end IF_STA;
 architecture behavior of IF_STA is
     
     signal pc_fetch         : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
+    signal pc_current       : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
     signal instr_fetched    : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
     signal temp_reg         : PipelineStages_Inst_PC                  := EMPTY_inst_pc;
     
@@ -35,22 +36,28 @@ begin
     process(clk)
     begin
         if reset = '1' then
-        
             pc_fetch     <= ZERO_32bits;
+            pc_current   <= pc_fetch;
             temp_reg.pc  <= ZERO_32bits;
             temp_reg.instr  <= NOP;
             
         elsif rising_edge(clk) then
-            if flush = '1' then      
+            if pc_fetch = ZERO_32bits then
+                temp_reg.instr  <= NOP; 
+                pc_fetch    <= std_logic_vector(unsigned(pc_fetch) + 4);
+                pc_current      <= pc_fetch;
+                temp_reg.pc     <= pc_current; 
+            elsif flush = '1' then      
                 pc_fetch    <= br_target;
                 temp_reg.instr  <= NOP;
+                pc_current      <= pc_fetch;
+                temp_reg.pc     <= pc_current; 
             elsif stall = STALL_NONE then
-                temp_reg.pc     <= pc_fetch; 
                 temp_reg.instr  <= instr_fetched;
-                -- make sure that the pc_fetch is in phase with instr_fetch, debugging purpose
                 pc_fetch    <= std_logic_vector(unsigned(pc_fetch) + 4);
+                pc_current      <= pc_fetch;
+                temp_reg.pc     <= pc_current; 
             end if;
-            temp_reg.pc     <= pc_fetch; 
         end if;
     end process;
 
