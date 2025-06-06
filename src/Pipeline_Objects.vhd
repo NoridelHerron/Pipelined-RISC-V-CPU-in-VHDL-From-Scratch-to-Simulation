@@ -67,7 +67,7 @@ package Pipeline_Types is
     
     type MEM_WB_Type is record
         alu_result  : std_logic_vector(DATA_WIDTH-1 downto 0);      -- ALU result
-        mem_result  : std_logic_vector(DATA_WIDTH-1 downto 0);      -- MEM result
+        mem_result  : std_logic_vector(DATA_WIDTH-1 downto 0);      -- MEM result  
         rd          : std_logic_vector(REG_ADDR_WIDTH-1 downto 0);  -- register destination
         op          : std_logic_vector(OPCODE_WIDTH-1 downto 0);    -- opcode  
         reg_write   : std_logic;

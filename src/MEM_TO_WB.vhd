@@ -35,7 +35,7 @@ begin
              MEM_WB_STAGE_reg   <= EMPTY_inst_pc;
              MEM_WB_reg         <= EMPTY_MEM_WB_Type; 
         elsif rising_edge(clk) then
-             MEM_WB_STAGE_reg   <= EX_MEM_STAGE; 
+             MEM_WB_STAGE_reg      <= EX_MEM_STAGE; 
              MEM_WB_reg.mem_result <= MEM.mem_result; 
              MEM_WB_reg.alu_result <= EX_MEM.result; 
              MEM_WB_reg.rd         <= EX_MEM.rd;

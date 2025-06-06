@@ -81,14 +81,8 @@ At the moment, it looks like using a 2-bit field is more efficient, since combin
 If anyone has recommendations or best practices for control signal encoding in pipelined CPU designs, I would love to learn from your experience!
 
 ### Design Note — IF STAGE
-**Observation**: 
-- After reset, you will see instructions at index 0 appear twice — this is normal and caused by the memory’s initial response delay.
-- When the PC is first updated to 0, the instruction memory takes one cycle to output the correct value. In that first cycle, the memory output is the instruction at index 0.
-- On the next cycle, with PC still at 0, the memory now outputs the correct instruction at index 0 — this is why you see index 0 twice in the waveform.
-- After this initial delay, the following instructions will flow normally:
-- Each time PC is updated (PC = 4, PC = 8, etc.), the corresponding instruction will appear on the next cycle — this one-cycle phase delay between PC and instruction is normal for synchronous memory systems.
-
-**Debug Tip**: I made sure to latch the PC counter to a separate PC_latched signal, since I was also latching the instruction fetched from memory. This allows me to clearly see the current instruction and the next PC value at the same time in the waveform, making pipeline flow easier to debug.
+**Pipeline Reset Handling**: 
+After reset, I added a conditional check to insert a NOP instead of fetching the instruction at address 0. This prevents the appearance of duplicate instructions at PC = 0, which could otherwise cause confusion in the waveform. Additionally, I designed the IF stage to always pass the current PC and current instruction to the next stage. This ensures that each stage clearly reflects the actual instruction residing at its corresponding PC address, making the pipeline flow easier to trace and debug.
 
 ### Design Note: ID STAGE
 - I encapsulated the Decoder and Hazard Detection Unit (HDU) into a single ID_STAGE module, because the earliest point where hazards can be detected is during decoding — once the instruction type, register sources, and dependencies are known.
@@ -130,7 +124,10 @@ When a stall is detected, I pass the stall signal to multiple stages:
             stall_out <= STALL_NONE;
         end if;
 
-### Debug Tip:
+### Design Note: Branch
+In the Decode stage, I decode the branch instruction and rearrange the immediate value according to the RISC-V specification. The immediate is then shifted left by one bit and added to the current PC to compute the branch target address. This branch target is passed down the pipeline to the IF stage. If the flush signal is later asserted (when the branch condition is determined to be true), the branch target will become the next PC. However, due to pipeline latency, the instruction at the branch target address will not appear in the pipeline until the following cycle. In the EX stage, I use the ALU flags to evaluate the branch condition and determine whether the branch should be taken. If so, the flush signal is asserted to update the PC and flush any incorrect instructions already in the pipeline.
+
+### Debug Tips:
 - I chose to inject a NOP into the ID/EX stage during a stall so that it is easy to visualize the stall in the waveform — the NOP acts as a clear marker.
 - This makes it obvious when the pipeline is holding due to a hazard, and prevents any misleading partial or invalid instruction from appearing downstream.
 - Setting the reg values to zero in the Forwarding MUX also helps ensure that EX_STAGE outputs 0 during stalls.

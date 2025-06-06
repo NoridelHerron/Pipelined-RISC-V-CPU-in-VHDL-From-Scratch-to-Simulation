@@ -48,7 +48,7 @@ begin
     variable imm_B          : std_logic_vector(IMM_WIDTH-1 downto 0)  := (others => '0');
     begin 
         if IF_ID_STAGE.instr = NOP then
-            ID_temp := EMPTY_ID_EX_Type; 
+            ID_temp := EMPTY_ID_EX_Type;    
         else
             ID_temp.funct7          := IF_ID_STAGE.instr(31 downto 25);
             ID_temp.rs2             := IF_ID_STAGE.instr(24 downto 20);
@@ -104,18 +104,17 @@ begin
                     ID_temp.funct7       := ZERO_7bits;
                     ID_temp.rs2          := ZERO_5bits;
                     ID_temp.rs1          := ZERO_5bits;
-                    ID_temp.funct3       := ZERO_3bits; 
-                    ID_temp.reg_write    := '0';      
+                    ID_temp.funct3       := ZERO_3bits;  
+                    ID_temp.is_branch    := '1';     
                 when others =>
                     ID_temp.reg_write    := '0';    
-            end case;
+            end case;  
         end if;
-        
+        reg_out.reg_data1       <= reg.reg_data1;
+        reg_out.reg_data2       <= reg.reg_data2;
         rs1_addr                <= ID_temp.rs1;
         rs2_addr                <= ID_temp.rs2;
         ID                      <= ID_temp;
-        reg_out.reg_data1       <= reg.reg_data1;
-        reg_out.reg_data2       <= reg.reg_data2;
-        
+
     end process;
 end behavior;

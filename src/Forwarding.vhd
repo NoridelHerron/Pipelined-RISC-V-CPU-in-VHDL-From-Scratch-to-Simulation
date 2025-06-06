@@ -27,7 +27,7 @@ process (ID_EX_STAGE, Forward, EX_MEM, WB, reg_in, ID_EX)
 begin
 
     -- Default: zero both outputs during stall (NOP is being injected)
-    if ID_EX_STAGE.instr = NOP or ID_EX.op = B_TYPE or ID_EX.op = J_TYPE then
+    if ID_EX_STAGE.instr = NOP then
         reg_out.reg_data1 <= ZERO_32bits;
         reg_out.reg_data2 <= ZERO_32bits;
 

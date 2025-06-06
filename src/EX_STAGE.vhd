@@ -74,14 +74,25 @@ begin
         is_flush        => flush
     ); 
  
-    is_flush      <= flush;        
-    reg_out       <= reg;
-    EX.result     <= EX_reg.result;
-    EX.flags      <= EX_reg.flags;   
-    EX.op         <= ID_EX.op;
-    EX.rd         <= ID_EX.rd;
-    EX.store_rs2  <= ID_EX.store_rs2;
-    EX.reg_write  <= ID_EX.reg_write;
-    EX.mem_read   <= ID_EX.mem_read;
-    EX.mem_write  <= ID_EX.mem_write;
+    process (flush, ID_EX.op)
+    begin
+        if ID_EX.op = B_TYPE then
+            is_flush      <= flush;  
+        elsif ID_EX.op = J_TYPE then
+            is_flush      <= '1';  
+        else
+            is_flush      <= '0'; 
+        end if;
+    end process;
+           
+    reg_out         <= reg;
+    EX.result       <= ID_EX.ret_address when ID_EX.op = J_TYPE else EX_reg.result;
+    EX.flags        <= EX_reg.flags;   
+    EX.op           <= ID_EX.op;
+    EX.rd           <= ID_EX.rd;
+    EX.store_rs2    <= ID_EX.store_rs2;
+    EX.reg_write    <= ID_EX.reg_write;
+    EX.mem_read     <= ID_EX.mem_read;
+    EX.mem_write    <= ID_EX.mem_write;
+    
 end behavior;

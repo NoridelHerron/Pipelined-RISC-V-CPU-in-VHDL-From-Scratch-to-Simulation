@@ -37,8 +37,7 @@ begin
                 IF_ID_STAGE_reg    <= IF_ID_STAGE_reg;
             else
                 if flush = '1' then
-                    IF_ID_STAGE_reg.instr <= NOP; 
-                    IF_ID_STAGE_reg.pc    <= IF_ID_STAGE_reg.pc; 
+                    IF_ID_STAGE_reg <= EMPTY_inst_pc;
                 else
                 -- Normal advance
                     IF_ID_STAGE_reg <= IF_STAGE;

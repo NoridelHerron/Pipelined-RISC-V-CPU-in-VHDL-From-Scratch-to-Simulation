@@ -30,7 +30,7 @@ architecture behavior of IF_STA is
     signal pc_current       : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
     signal instr_fetched    : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
     signal temp_reg         : PipelineStages_Inst_PC                  := EMPTY_inst_pc;
-    
+    signal after_flush      : std_logic                               := '0';
 begin
 
     process(clk)
@@ -49,9 +49,8 @@ begin
                 temp_reg.pc     <= pc_current; 
             elsif flush = '1' then      
                 pc_fetch        <= br_target;
-                temp_reg.instr  <= NOP;
-                pc_current      <= pc_fetch;
-                temp_reg.pc     <= pc_current; 
+                temp_reg        <= EMPTY_inst_pc;
+                pc_current      <= pc_fetch; 
             elsif stall = STALL_NONE then
                 temp_reg.instr  <= instr_fetched;
                 pc_fetch    <= std_logic_vector(unsigned(pc_fetch) + 4);

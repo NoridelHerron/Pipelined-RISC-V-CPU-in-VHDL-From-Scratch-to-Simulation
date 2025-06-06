@@ -35,7 +35,7 @@ package initialize_Types is
         flags       => (others => '0'),  
         op          => (others => '0'),
         rd          => (others => '0'),
-        store_rs2   => (others => '0'),
+        store_rs2   => (others => '0'),  
         reg_write   => '0',
         mem_read    => '0',
         mem_write   => '0' 
