@@ -107,8 +107,11 @@ Similar to branch instructions, due to pipeline latency, the instruction at the 
 - Setting the reg values to zero in the Forwarding MUX also helps ensure that EX_STAGE outputs 0 during stalls.
 
 ![I tried to walk through myself what I should expect](images/instr_diagram.png) 
+Note: I tried to walk through myself what I should expect
 ![old result](images/old_wave_duplicate.png) 
+Note: Old wave with duplicates
 ![see more images in the folder](images/latest1.png) 
+Note: latest waveform
 
 **How did I confirm the pipeline is working properly?** 
 To verify that the pipeline stages were functioning as intended, I observed the flow of instructions across each stage in the waveform viewer.
