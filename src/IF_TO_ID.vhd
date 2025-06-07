@@ -38,7 +38,7 @@ begin
             else
                 -- replace the instruction with NOP and make pc = 0
                 if flush = '1' then
-                    IF_ID_STAGE_reg <= EMPTY_inst_pc;
+                    IF_ID_STAGE_reg <= EMPTY_inst_pc; 
                 else
                 -- Normal advance
                     IF_ID_STAGE_reg <= IF_STAGE;

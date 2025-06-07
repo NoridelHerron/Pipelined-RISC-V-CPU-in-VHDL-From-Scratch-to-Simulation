@@ -1,9 +1,4 @@
-# Pipelined-RISC-V-CPU-in-VHDL-From-Scratch-to-Simulation
-This project is a fully custom, 5-stage pipelined RISC-V CPU built from the ground up in VHDL. 
-Each pipeline stage—Instruction Fetch (IF), Decode (ID), Execute (EX), Memory Access (MEM), and Write Back (WB)—was designed with a modular architecture and verified independently to ensure signal integrity and data flow consistency.
-
 ## Key features
-
 - 5-stage pipeline: IF, ID, EX, MEM, WB
 - ALU operations, load/store support
 - Word-aligned memory interface with internal DATA_MEM
@@ -34,42 +29,12 @@ If anyone has insights or resources on this, I would love to learn! I’d like t
 ## Pipeline Diagram
 IF --> ID --> EX --> MEM --> WB
 
-## Project Structure
-**PIPELINE**/
-- images/
-- src/
-    - RISCV_CPU.vhd (Main)
-    - Pipeline_Objects.vhd (Constant, type declaration, and initialization)
-    - IF_STA.vhd
-        - INST_MEM.vhd (Instruction Memory)
-    - IF_TO_ID.vhd
-    - DECODER.vhd
-        - Register_File.vhd
-    - ID_TO_EX.vhd
-    - EX_STAGE.vhd
-        - ALU_32bits.vhd
-            - adder_32bits.vhd
-                - FullAdder.vhd
-            - sub_32bits.vhd
-                - FullSubtractor.vhd
-    - EX_TO_MEM.vhd
-    - MEM_STA.vhd 
-        - DATA_MEM.vhd (Data Memory)
-    - MEM_TO_WB.vhd
-    - WB_STA.vhd
-    - reusable_function.vhd
-    - reusable_func_def_.vhd
-- test_benches/
-    - tb_RISCV_CPU.vhd
-- .gitignore
-- README.md
-
 ### Personal Note
 - I initially followed existing RISC-V pipeline diagrams, but found they lacked enough detailed information for full implementation. To address this, I made several design modifications based on my own testing and understanding of hazard timing and pipeline behavior. The resulting pipeline reflects these practical adjustments.
 
 - Once the project is complete, I plan to remove unnecessary signals from the record types in some of the stages. For now, I am keeping these extra signals to aid in debugging.
 
-## Design Note — Control Signals
+### Design Note — Control Signals
 Instead of passing the full opcode through the pipeline, I generate compact control signals during instruction decode. This reduces the number of bits transferred between stages and simplifies control logic in later stages.
 
 While designing this, I considered whether to use:
@@ -125,14 +90,25 @@ When a stall is detected, I pass the stall signal to multiple stages:
         end if;
 
 ### Design Note: Branch
-In the Decode stage, I decode the branch instruction and rearrange the immediate value according to the RISC-V specification. The immediate is then shifted left by one bit and added to the current PC to compute the branch target address. This branch target is passed down the pipeline to the IF stage. If the flush signal is later asserted (when the branch condition is determined to be true), the branch target will become the next PC. However, due to pipeline latency, the instruction at the branch target address will not appear in the pipeline until the following cycle. In the EX stage, I use the ALU flags to evaluate the branch condition and determine whether the branch should be taken. If so, the flush signal is asserted to update the PC and flush any incorrect instructions already in the pipeline.
+In the Decode stage, I decode the branch instruction and rearrange the immediate value according to the RISC-V specification. The immediate is then shifted left by one bit and added to the current PC to compute the branch target address. This branch target is passed down the pipeline to the IF stage. If the flush signal is later asserted (when the branch condition is determined to be true), the branch target will become the next PC. However, due to pipeline latency, the instruction at the branch target address will not appear in the pipeline until the following cycle. 
+
+In the EX stage, I initially planned to use the ALU flags to evaluate the branch condition and decide whether to take the branch. However, I realized that relying on the ALU would complicate the design because I cannot force the funct3 (f3) field to match the add_sub operation, even though funct7 (f7) would be fine. Since funct3 is needed to determine the specific type of branch, instead of adding another control signal, I decided to directly compare the register data. This approach simplifies the logic and avoids unnecessary complexity. If the branch is taken, the flush signal is asserted to update the PC and clear any incorrect instructions already in the pipeline.
+
+### Design Note: Jump and flush
+In the Decode stage, I decode the instruction and rearrange the immediate value according to the J-type format. I then shift the immediate left by one bit and add it to the current PC to compute the jump target address. For the return address (which should be stored in the destination register), I calculate PC + 4. To ensure this return address is written to the register file, I set RegWrite to 1 when a jump instruction is detected.
+
+Since a jump is unconditional, in the EX stage, I added logic to automatically assert the flush signal when a jump instruction is processed. Additionally, the return address is assigned to the EX result in this stage so that it can be written back to the register file.
+
+Similar to branch instructions, due to pipeline latency, the instruction at the jump target address will not appear in the pipeline until the next cycle. As a result, you will see one "raw" instruction before the actual target instruction is fetched and enters the pipeline. I initially considered inserting a NOP (similar to what I do after reset), but this situation is different because I cannot predict exactly when a jump will occur. I also thought about generating the flush signal during the ID stage since the jump is unconditional, but I realized that the target address and control signals are not fully stable until the instruction reaches the ID/EX register (EX stage). Therefore, I chose to generate the flush signal in the EX stage for proper timing and stability.
 
 ### Debug Tips:
 - I chose to inject a NOP into the ID/EX stage during a stall so that it is easy to visualize the stall in the waveform — the NOP acts as a clear marker.
 - This makes it obvious when the pipeline is holding due to a hazard, and prevents any misleading partial or invalid instruction from appearing downstream.
 - Setting the reg values to zero in the Forwarding MUX also helps ensure that EX_STAGE outputs 0 during stalls.
 
-![Pipeline with forwading and stalling](images/EXPECTED_Pipeline.png) 
+![I tried to walk through myself what I should expect](images/instr_diagram.png) 
+![old result](images/old_wave_duplicate.png) 
+![see more images in the folder](images/latest1.png) 
 
 **How did I confirm the pipeline is working properly?** 
 To verify that the pipeline stages were functioning as intended, I observed the flow of instructions across each stage in the waveform viewer.
