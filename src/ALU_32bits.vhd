@@ -12,7 +12,7 @@ use IEEE.NUMERIC_STD.ALL;
 library work;
 use work.Pipeline_Types.all;
 use work.const_Types.all;
--- use work.ALU_Constants_Pkg.all; -- I will clean this up later when I completed the necessary stuff
+use work.ALU_Constants_Pkg.all; 
 
 entity ALU is
     Generic( REG_ADDR_WIDTH : natural    := REG_ADDR_WIDTH;
@@ -63,26 +63,20 @@ begin
           C_flag     => Cs, 
           N_flag     => Ns
     );
-    
-    -- Convert opcodes to integers
-    -- Optional we can directly use the bits for case statement
-    -- For me, this looks cleaner
-    func_3 <= TO_INTEGER(unsigned(f3)); 
-    func_7 <= TO_INTEGER(unsigned(f7));
 
     -- Main datapath process
-    process (func_3, func_7, A, B, res_add, res_sub, Za, Va, Ca, Na, Zs, Vs, Cs, Ns)
+    process (f3, f7, A, B, res_add, res_sub, Za, Va, Ca, Na, Zs, Vs, Cs, Ns)
     begin
-        case func_3 is
-            when 0 =>  -- ADD/SUB
-                case func_7 is
-                    when 0 =>    -- ADD
+        case f3 is
+            when FUNC3_ADD_SUB =>  -- ADD/SUB
+                case f7 is
+                    when FUNC7_ADD =>    -- ADD
                         res_temp <= res_add;
                         Z_flag <= Za;
                         V_flag <= Va;
                         C_flag <= Ca;
                         N_flag <= Na;
-                    when 32 =>   -- SUB (RISC-V uses 0b0100000 = 32 decimal)
+                    when FUNC7_SUB =>   -- SUB (RISC-V uses 0b0100000 = 32 decimal)
                         res_temp <= res_sub;
                         Z_flag <= Zs;
                         V_flag <= Vs;
@@ -93,40 +87,40 @@ begin
                         Z_flag <= '0'; V_flag <= '0'; C_flag <= '0'; N_flag <= '0';
                 end case;
 
-            when 1 =>  -- SLL
+            when FUNC3_SLL =>  -- SLL
                 res_temp <= std_logic_vector(shift_left(unsigned(A), to_integer(unsigned(B(REG_ADDR_WIDTH - 1 downto 0)))));
 
-            when 2 =>  -- SLT
+            when FUNC3_SLT =>  -- SLT
                 if signed(A) < signed(B) then
                     res_temp <= (DATA_WIDTH - 1 downto 1 => '0') & '1';
                 else
                     res_temp <= (others => '0');
                 end if;
 
-            when 3 =>  -- SLTU
+            when FUNC3_SLTU =>  -- SLTU
                 if unsigned(A) < unsigned(B) then
                     res_temp <= (DATA_WIDTH - 1 downto 1 => '0') & '1';
                 else
                     res_temp <= (others => '0');
                 end if;
 
-            when 4 =>  -- XOR
+            when FUNC3_XOR =>  -- XOR
                 res_temp <= A xor B;
 
-            when 5 =>  -- SRL/SRA
-                case func_7 is
-                    when 0 =>    -- SRL
+            when FUNC3_SRL_SRA =>  -- SRL/SRA
+                case f7 is
+                    when FUNC7_SRL =>    -- SRL
                         res_temp <= std_logic_vector(shift_right(unsigned(A), to_integer(unsigned(B(REG_ADDR_WIDTH - 1 downto 0)))));
-                    when 32 =>   -- SRA
+                    when FUNC7_SRA =>   -- SRA
                         res_temp <= std_logic_vector(shift_right(signed(A), to_integer(unsigned(B(REG_ADDR_WIDTH - 1 downto 0)))));
                     when others =>
                         res_temp <= (others => '0');
                 end case;
 
-            when 6 =>  -- OR
+            when FUNC3_OR =>  -- OR
                 res_temp <= A or B;
 
-            when 7 =>  -- AND
+            when FUNC3_AND =>  -- AND
                 res_temp <= A and B;
 
             when others =>

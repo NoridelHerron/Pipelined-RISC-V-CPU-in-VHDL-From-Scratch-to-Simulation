@@ -27,7 +27,7 @@ entity RISCV_CPU is
             WB_out          : out WB_Type; 
             -- register source value
             reg_out         : out reg_Type;
-            flush           : out std_logic;  
+            flush           : out std_logic; 
             -- data hazard solutions
             num_stall       : out numStall;
             Forward_out     : out FORWARD 
@@ -61,6 +61,7 @@ architecture Behavioral of RISCV_CPU is
     -- data value from either register source or value forwarded
     signal EX_reg               : reg_Type                      := EMPTY_reg_Type;
     signal is_flush             : std_logic                     := '0';
+    
 begin
  
     IF_STAG : entity work.IF_STA port map (
@@ -163,4 +164,5 @@ begin
     num_stall           <= stall;
     Forward_out         <= Forward; 
     flush               <= is_flush; 
+
 end Behavioral;

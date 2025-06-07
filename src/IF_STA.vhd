@@ -18,7 +18,7 @@ entity IF_STA is
            reset           : in  std_logic;
            flush           : in  std_logic;
            br_target       : in std_logic_vector(DATA_WIDTH-1 downto 0); 
-           stall           : in  numStall;                 
+           stall           : in  numStall;          
            IF_STAGE        : out PipelineStages_Inst_PC
          ); 
 
@@ -30,7 +30,7 @@ architecture behavior of IF_STA is
     signal pc_current       : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
     signal instr_fetched    : std_logic_vector(DATA_WIDTH-1 downto 0) := ZERO_32bits;
     signal temp_reg         : PipelineStages_Inst_PC                  := EMPTY_inst_pc;
-    signal after_flush      : std_logic                               := '0';
+    
 begin
 
     process(clk)
@@ -60,6 +60,7 @@ begin
                 end if;
                 pc_current      <= pc_fetch;
                 temp_reg.pc     <= pc_current; 
+
             end if;
         end if;
     end process;

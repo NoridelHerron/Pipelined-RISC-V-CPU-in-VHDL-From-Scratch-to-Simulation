@@ -69,7 +69,7 @@ begin
     
     -- determine if branch condition is true
     BRANCH : entity work.BRANCHING port map (
-        flags           => EX_reg.flags,
+        reg             => reg,
         is_branch       => is_branch, 
         f3              => ID_EX.funct3,
         is_flush        => flush

@@ -19,9 +19,9 @@ architecture sim of tb_CPU_RISCV is
     
     constant CLK_PERIOD : time := 10 ns;
     
+    -- signals can be rearrange in any order
     signal clk              : std_logic := '0';
     signal reset            : std_logic := '1';
-    
     signal IF_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
     signal ID_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
     signal Forward          : FORWARD                       := EMPTY_FORW_Type;
@@ -51,7 +51,7 @@ begin
                     MEM_WB_out          => MEM_WB,
                     WB_out              => WB,
                     reg_out             => ID_reg,
-                    flush               => is_flush,
+                    flush               => is_flush,      
                     num_stall           => stall,
                     Forward_out         => Forward    
                  );

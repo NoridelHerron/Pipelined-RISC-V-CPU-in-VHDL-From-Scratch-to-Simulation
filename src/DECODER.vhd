@@ -11,6 +11,7 @@ library work;
 use work.Pipeline_Types.all;
 use work.const_Types.all;
 use work.initialize_Types.all;
+use work.ALU_Constants_Pkg.all; 
 
 entity DECODER is
     Port (  -- inputs
@@ -43,9 +44,9 @@ begin
                    );  
                    
     process (IF_ID_STAGE)
-    variable ID_temp        : ID_EX_Type                              := EMPTY_ID_EX_Type;   
-    variable imm_J          : std_logic_vector(IMMJ_WIDTH-1 downto 0) := (others => '0');
-    variable imm_B          : std_logic_vector(IMM_WIDTH-1 downto 0)  := (others => '0');
+    variable ID_temp   : ID_EX_Type                              := EMPTY_ID_EX_Type;   
+    variable imm_J     : std_logic_vector(IMMJ_WIDTH-1 downto 0) := (others => '0');
+    variable imm_B     : std_logic_vector(IMM_WIDTH-1 downto 0)  := (others => '0');
     begin 
         -- this handle the flushed instruction.
         if IF_ID_STAGE.instr = NOP then
@@ -68,7 +69,7 @@ begin
             ID_temp.mem_write       := '0';
             ID_temp.mem_read        := '0';
             ID_temp.reg_write       := '1';
-            ID_temp.is_branch    := '0'; 
+            ID_temp.is_branch       := '0'; 
             
             -- I forced some values to 0 for debugging purpose since some type doesn't have all pieces needed.
             -- like for I-type it doesn't use rs2 and func7
@@ -80,17 +81,17 @@ begin
                 when LOAD   =>
                     ID_temp.imm          := ID_temp.funct7 & ID_temp.rs2;  
                     ID_temp.mem_read     := '1';
-                    ID_temp.funct3       := ZERO_3bits;
-                    ID_temp.funct7       := ZERO_7bits;
+                    ID_temp.funct3       := FUNC3_ADD_SUB;
+                    ID_temp.funct7       := FUNC7_ADD;
                     ID_temp.rs2          := ZERO_5bits;
                 when S_TYPE =>
                     ID_temp.imm          := ID_temp.funct7 & ID_temp.rd;
                     ID_temp.mem_write    := '1';
                     ID_temp.reg_write    := '0';
-                    ID_temp.store_rs2    := reg.reg_data2;
-                    ID_temp.funct3       := ZERO_3bits;
-                    ID_temp.funct7       := ZERO_7bits;
-                    ID_temp.rd           := ZERO_5bits;
+                    ID_temp.store_rs2    := reg.reg_data2;  
+                    ID_temp.funct3       := FUNC3_ADD_SUB; 
+                    ID_temp.funct7       := FUNC7_ADD;
+                    ID_temp.rd           := ZERO_5bits; 
                 when B_TYPE =>
                     ID_temp.is_branch    := '1'; 
                     ID_temp.reg_write    := '0';
