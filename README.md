@@ -32,7 +32,11 @@ IF --> ID --> EX --> MEM --> WB
 ### Personal Note
 - I initially followed existing RISC-V pipeline diagrams, but found they lacked enough detailed information for full implementation. To address this, I made several design modifications based on my own testing and understanding of hazard timing and pipeline behavior. The resulting pipeline reflects these practical adjustments.
 
-- Once the project is complete, I plan to remove unnecessary signals from the record types in some of the stages. For now, I am keeping these extra signals to aid in debugging.
+- While refactoring components for my Superscalar pipeline, I found a few areas in my original ALU design that could be improved for better stability and scalability.
+
+The 5-stage pipeline is still a solid learning baseline, but if you’re planning to add advanced features, I’d definitely encourage you to check out the refactored ALU in my Superscalar repo — and feel free to play around with it! Experimenting and testing is the best way to understand how it works and how to adapt it to your own designs. 🚀
+
+If you’re curious why I refactored it this way, just send me a message — happy to share what I learned!
 
 ### Design Note — Control Signals
 Instead of passing the full opcode through the pipeline, I generate compact control signals during instruction decode. This reduces the number of bits transferred between stages and simplifies control logic in later stages.
