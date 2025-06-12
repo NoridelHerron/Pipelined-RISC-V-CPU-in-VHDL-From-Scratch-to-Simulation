@@ -85,9 +85,9 @@ Since a jump is unconditional, in the EX stage, I added logic to automatically a
 - Setting the reg values to zero in the Forwarding MUX also helps ensure that EX_STAGE outputs 0 during stalls.
 
 Note: I highlighted the hazard being detected in the MEM/WB stage.
-![data hazards](images/DATA_HAZARDS.png) 
+![data hazards](images/DATA_HAZARDS.jpg) 
 Note: I highlighted the instruction propagation, including jump and branch behavior, and how flushes are handled. I also added detailed notes throughout to explain the flow.
-![jump, branch, and flush](images/latest1.png) 
+![jump, branch, and flush](images/JUMP_BRANCH_FLUSH.jpg) 
 
 **How did I confirm the pipeline is working properly?** 
 To verify that the pipeline stages were functioning as intended, I observed the flow of instructions across each stage in the waveform viewer.
