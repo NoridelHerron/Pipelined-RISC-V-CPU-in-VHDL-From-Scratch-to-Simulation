@@ -25,7 +25,7 @@ entity EX_STAGE is
             reg_in      : in  reg_Type;  
             EX          : out EX_MEM_Type;
             reg_out     : out reg_Type;
-            is_flush    : out std_logic           
+            is_flush    : out control_types         
           );
 end EX_STAGE;
 
@@ -35,7 +35,7 @@ architecture behavior of EX_STAGE is
     signal EX_reg      : EX_MEM_Type    := EMPTY_EX_MEM_Type;
     signal reg         : reg_Type       := EMPTY_reg_Type;
     signal Ci_Bi       : std_logic      := '0';  -- Carry-in or B-invert flag, can be expanded
-    signal flush       : std_logic      := '0'; 
+    signal flush_reg   : control_types  := NONE; 
     signal is_branch   : std_logic      := '0'; 
 
 begin
@@ -72,18 +72,18 @@ begin
         reg             => reg,
         is_branch       => is_branch, 
         f3              => ID_EX.funct3,
-        is_flush        => flush
+        is_flush        => flush_reg
     ); 
  
     -- determine which flush instruction based on opcode type
-    process (flush, ID_EX.op)
+    process (flush_reg, ID_EX.op)
     begin
         if ID_EX.op = B_TYPE then
-            is_flush      <= flush;  
+            is_flush      <= flush_reg;  
         elsif ID_EX.op = J_TYPE then
-            is_flush      <= '1';  
+            is_flush      <= FLUSH;  
         else
-            is_flush      <= '0'; 
+            is_flush      <= NONE; 
         end if;
     end process;
            

@@ -27,9 +27,7 @@ entity RISCV_CPU is
             WB_out          : out WB_Type; 
             -- register source value
             reg_out         : out reg_Type;
-            flush           : out std_logic; 
-            -- data hazard solutions
-            num_stall       : out numStall;
+            bubble          : out control_sig;
             Forward_out     : out FORWARD 
          );
 end RISCV_CPU;
@@ -37,8 +35,9 @@ end RISCV_CPU;
 architecture Behavioral of RISCV_CPU is
 
     -- data hazard handlers
-    signal Forward       : FORWARD                      := EMPTY_FORW_Type;
-    signal stall         : numStall                     := STALL_NONE;
+    signal Forward       : FORWARD                       := EMPTY_FORW_Type;
+    signal is_bubble     : control_sig                   := EMPTY_control_sig;
+    signal after_flush   : control_Types                 := NONE;      
    
     -- pc and instruction
     signal IF_STAGE      : PipelineStages_Inst_PC        := EMPTY_inst_pc; 
@@ -57,27 +56,26 @@ architecture Behavioral of RISCV_CPU is
     signal WB            : WB_Type                       := EMPTY_WB_Type;
     
     -- register data value from the register source 
-    signal ID_reg               : reg_Type                      := EMPTY_reg_Type;
+    signal ID_reg               : reg_Type               := EMPTY_reg_Type;
     -- data value from either register source or value forwarded
-    signal EX_reg               : reg_Type                      := EMPTY_reg_Type;
-    signal is_flush             : std_logic                     := '0';
+    signal EX_reg               : reg_Type               := EMPTY_reg_Type;
+    
     
 begin
  
     IF_STAG : entity work.IF_STA port map (
         clk             => clk,
         reset           => reset,
-        flush           => is_flush,
+        is_bubble       => is_bubble,
         br_target       => ID_EX.br_target,
-        stall           => stall,
-        IF_STAGE        => IF_STAGE      
+        IF_STAGE        => IF_STAGE,
+        after_flush     => after_flush      
     );
     
     IF_TO_ID_STAGE : entity work.IF_TO_ID port map (
         clk            => clk,
         reset          => reset, 
-        flush          => is_flush, 
-        stall          => stall,
+        is_bubble      => is_bubble,
         IF_STAGE       => IF_STAGE,
         IF_ID_STAGE    => ID_STAGE        
     );
@@ -92,15 +90,14 @@ begin
         MEM_WB          => MEM_WB, 
         ID              => ID,
         Forward_out     => Forward,
-        stall_out       => stall,
+        stall_out       => is_bubble.stall,
         reg_out         => ID_reg 
     );
     
     ID_TO_EX_STAGE : entity work.ID_TO_EX port map (
         clk             => clk,
-        reset           => reset,  
-        flush           => is_flush, 
-        stall           => stall,  
+        reset           => reset,
+        is_bubble       => is_bubble,
         ID_STAGE        => ID_STAGE,
         ID              => ID, 
         ID_EX_STAGE     => EX_STAGE,
@@ -116,7 +113,7 @@ begin
         reg_in          => ID_reg,
         EX              => EX, 
         reg_out         => EX_reg,
-        is_flush        => is_flush      
+        is_flush        => is_bubble.flush
     ); 
     
     EX_TO_MEM_STAGE : entity work.EX_TO_MEM port map (
@@ -161,8 +158,7 @@ begin
     EX_MEM_out          <= EX_MEM;
     MEM_WB_out          <= MEM_WB;
     WB_out              <= WB;
-    num_stall           <= stall;
     Forward_out         <= Forward; 
-    flush               <= is_flush; 
+    bubble              <= is_bubble; 
 
 end Behavioral;

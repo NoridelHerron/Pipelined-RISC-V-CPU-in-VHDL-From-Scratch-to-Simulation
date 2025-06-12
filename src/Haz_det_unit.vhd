@@ -21,7 +21,7 @@ entity Haz_det_unit is
         EX_MEM          : in EX_MEM_Type;
         MEM_WB          : in MEM_WB_Type;
         Forward         : out FORWARD;
-        stall_out       : out numStall
+        stall_out       : out control_types
     );
 end Haz_det_unit;
 
@@ -53,9 +53,9 @@ begin
         -- Stall logic for LOAD-USE hazard
         if ID_EX.mem_read = '1' and 
             (ID_EX.rd = ID.rs1 or ID_EX.rd = ID.rs2) then
-            stall_out <= STALL_NEEDED;
+            stall_out <= STALL;
         else
-            stall_out <= STALL_NONE;
+            stall_out <= NONE;
         end if;
     end process;
 

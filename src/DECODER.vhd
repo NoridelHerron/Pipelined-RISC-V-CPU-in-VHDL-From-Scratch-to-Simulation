@@ -48,79 +48,75 @@ begin
     variable imm_J     : std_logic_vector(IMMJ_WIDTH-1 downto 0) := (others => '0');
     variable imm_B     : std_logic_vector(IMM_WIDTH-1 downto 0)  := (others => '0');
     begin 
-        -- this handle the flushed instruction.
-        if IF_ID_STAGE.instr = NOP then
-            ID_temp := EMPTY_ID_EX_Type;    
-        else
-            ID_temp.funct7          := IF_ID_STAGE.instr(31 downto 25);
-            ID_temp.rs2             := IF_ID_STAGE.instr(24 downto 20);
-            ID_temp.rs1             := IF_ID_STAGE.instr(19 downto 15);
-            ID_temp.funct3          := IF_ID_STAGE.instr(14 downto 12);
-            ID_temp.rd              := IF_ID_STAGE.instr(11 downto 7);
-            ID_temp.op              := IF_ID_STAGE.instr(6 downto 0);
     
-            -- defaults
-            ID_temp.br_target       := ZERO_32bits; 
-            ID_temp.ret_address     := ZERO_32bits;     
-            ID_temp.store_rs2       := ZERO_32bits; 
-            imm_J                   := ZERO_20bits; 
-            ID_temp.imm             := ZERO_12bits; 
-            imm_B                   := ZERO_12bits; 
-            ID_temp.mem_write       := '0';
-            ID_temp.mem_read        := '0';
-            ID_temp.reg_write       := '1';
-            ID_temp.is_branch       := '0'; 
-            
-            -- I forced some values to 0 for debugging purpose since some type doesn't have all pieces needed.
-            -- like for I-type it doesn't use rs2 and func7
-            case ID_temp.op is
-                when I_IMME =>
-                    ID_temp.imm          := ID_temp.funct7 & ID_temp.rs2;
-                    ID_temp.funct7       := ZERO_7bits;
-                    ID_temp.rs2          := ZERO_5bits;
-                when LOAD   =>
-                    ID_temp.imm          := ID_temp.funct7 & ID_temp.rs2;  
-                    ID_temp.mem_read     := '1';
-                    ID_temp.funct3       := FUNC3_ADD_SUB;
-                    ID_temp.funct7       := FUNC7_ADD;
-                    ID_temp.rs2          := ZERO_5bits;
-                when S_TYPE =>
-                    ID_temp.imm          := ID_temp.funct7 & ID_temp.rd;
-                    ID_temp.mem_write    := '1';
-                    ID_temp.reg_write    := '0';
-                    ID_temp.store_rs2    := reg.reg_data2;  
-                    ID_temp.funct3       := FUNC3_ADD_SUB; 
-                    ID_temp.funct7       := FUNC7_ADD;
-                    ID_temp.rd           := ZERO_5bits; 
-                when B_TYPE =>
-                    ID_temp.is_branch    := '1'; 
-                    ID_temp.reg_write    := '0';
-                    imm_B                := ID_temp.funct7 & ID_temp.rd;
-                    ID_temp.imm          := imm_B(11) & imm_B(0) & imm_B(10 downto 5) & imm_B(4 downto 1);
-                    ID_temp.br_target    := std_logic_vector( signed(IF_ID_STAGE.pc) + resize(signed(ID_temp.imm & '0'), 32));
-                    ID_temp.rd           := ZERO_5bits;
-                    ID_temp.funct7       := ZERO_7bits;
-                when J_TYPE =>
-                    imm_J                := ID_temp.funct7 & ID_temp.rs2 & ID_temp.rs1 & ID_temp.funct3;  
-                    ID_temp.immJ         := imm_J(19) & imm_J(7 downto 0) & imm_J(8) & imm_J(18 downto 9);
-                    ID_temp.br_target    := std_logic_vector( signed(IF_ID_STAGE.pc) + resize(signed(ID_temp.immJ & '0'), 32));
-                    ID_temp.ret_address  := std_logic_vector( signed(IF_ID_STAGE.pc) + 4);
-                    ID_temp.funct7       := ZERO_7bits;
-                    ID_temp.rs2          := ZERO_5bits;
-                    ID_temp.rs1          := ZERO_5bits;
-                    ID_temp.funct3       := ZERO_3bits;  
-                    ID_temp.is_branch    := '1';     
-                when others =>
-                    ID_temp.reg_write    := '0';    
-            end case;  
-        end if;
-        -- since we cannot use the ID.rs1 or ID.rs2, we have to use another signal to send to the register.
-        rs1_addr                <= ID_temp.rs1;
-        rs2_addr                <= ID_temp.rs2;
-        -- output
-        reg_out.reg_data1       <= reg.reg_data1;
-        reg_out.reg_data2       <= reg.reg_data2;
-        ID                      <= ID_temp;
+        ID_temp.funct7          := IF_ID_STAGE.instr(31 downto 25);
+        ID_temp.rs2             := IF_ID_STAGE.instr(24 downto 20);
+        ID_temp.rs1             := IF_ID_STAGE.instr(19 downto 15);
+        ID_temp.funct3          := IF_ID_STAGE.instr(14 downto 12);
+        ID_temp.rd              := IF_ID_STAGE.instr(11 downto 7);
+        ID_temp.op              := IF_ID_STAGE.instr(6 downto 0);
 
+        -- defaults
+        ID_temp.br_target       := ZERO_32bits; 
+        ID_temp.ret_address     := ZERO_32bits;     
+        ID_temp.store_rs2       := ZERO_32bits; 
+        imm_J                   := ZERO_20bits; 
+        ID_temp.imm             := ZERO_12bits; 
+        imm_B                   := ZERO_12bits; 
+        ID_temp.mem_write       := '0';
+        ID_temp.mem_read        := '0';
+        ID_temp.reg_write       := '1';
+        ID_temp.is_branch       := '0'; 
+        
+        -- I forced some values to 0 for debugging purpose since some type doesn't have all pieces needed.
+        -- like for I-type it doesn't use rs2 and func7
+        case ID_temp.op is
+            when I_IMME =>
+                ID_temp.imm          := ID_temp.funct7 & ID_temp.rs2;
+                ID_temp.funct7       := ZERO_7bits;
+                ID_temp.rs2          := ZERO_5bits;
+            when LOAD   =>
+                ID_temp.imm          := ID_temp.funct7 & ID_temp.rs2;  
+                ID_temp.mem_read     := '1';
+                ID_temp.funct3       := FUNC3_ADD_SUB;
+                ID_temp.funct7       := FUNC7_ADD;
+                ID_temp.rs2          := ZERO_5bits;
+            when S_TYPE =>
+                ID_temp.imm          := ID_temp.funct7 & ID_temp.rd;
+                ID_temp.mem_write    := '1';
+                ID_temp.reg_write    := '0';
+                ID_temp.store_rs2    := reg.reg_data2;  
+                ID_temp.funct3       := FUNC3_ADD_SUB; 
+                ID_temp.funct7       := FUNC7_ADD;
+                ID_temp.rd           := ZERO_5bits; 
+            when B_TYPE =>
+                ID_temp.is_branch    := '1'; 
+                ID_temp.reg_write    := '0';
+                imm_B                := ID_temp.funct7 & ID_temp.rd;
+                ID_temp.imm          := imm_B(11) & imm_B(0) & imm_B(10 downto 5) & imm_B(4 downto 1);
+                ID_temp.br_target    := std_logic_vector( signed(IF_ID_STAGE.pc) + resize(signed(ID_temp.imm & '0'), 32));
+                ID_temp.rd           := ZERO_5bits;
+                ID_temp.funct7       := ZERO_7bits;
+            when J_TYPE =>
+                imm_J                := ID_temp.funct7 & ID_temp.rs2 & ID_temp.rs1 & ID_temp.funct3;  
+                ID_temp.immJ         := imm_J(19) & imm_J(7 downto 0) & imm_J(8) & imm_J(18 downto 9);
+                ID_temp.br_target    := std_logic_vector( signed(IF_ID_STAGE.pc) + resize(signed(ID_temp.immJ & '0'), 32));
+                ID_temp.ret_address  := std_logic_vector( signed(IF_ID_STAGE.pc) + 4);
+                ID_temp.funct7       := ZERO_7bits;
+                ID_temp.rs2          := ZERO_5bits;
+                ID_temp.rs1          := ZERO_5bits;
+                ID_temp.funct3       := ZERO_3bits;  
+                ID_temp.is_branch    := '1';     
+            when others =>
+                ID_temp.reg_write    := '0';    
+        end case;  
+    -- since we cannot use the ID.rs1 or ID.rs2, we have to use another signal to send to the register.
+    rs1_addr                <= ID_temp.rs1;
+    rs2_addr                <= ID_temp.rs2;
+    -- output
+    reg_out.reg_data1       <= reg.reg_data1;
+    reg_out.reg_data2       <= reg.reg_data2;
+    ID                      <= ID_temp;
+        
     end process;
 end behavior;

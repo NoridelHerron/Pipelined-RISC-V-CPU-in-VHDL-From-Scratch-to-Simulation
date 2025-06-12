@@ -22,7 +22,7 @@ entity ID_STA is
             MEM_WB          : in MEM_WB_Type;
             ID              : out ID_EX_Type; 
             Forward_out     : out FORWARD;
-            stall_out       : out numStall;
+            stall_out       : out control_types;
             reg_out         : out reg_Type
         );
 end ID_STA;

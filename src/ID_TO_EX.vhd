@@ -15,8 +15,7 @@ entity ID_TO_EX is
     Port (
             clk             : in  std_logic; 
             reset           : in  std_logic; 
-            flush           : in  std_logic;  
-            stall           : in  numStall;    
+            is_bubble       : in  control_sig;
             ID_STAGE        : in  PipelineStages_Inst_PC;
             ID              : in  ID_EX_Type;     
             ID_EX_STAGE     : out PipelineStages_Inst_PC;  
@@ -36,26 +35,29 @@ begin
             ID_EX_STAGE_reg <= EMPTY_inst_pc;
             ID_EX_reg       <= EMPTY_ID_EX_Type;
         elsif rising_edge(clk) then
-            if stall /= STALL_NONE then
+            if is_bubble.stall = STALL then
                 -- STALL → insert NOP into ID_EX
-                ID_EX_STAGE_reg.pc    <= ID_EX_STAGE_reg.pc;
-                ID_EX_STAGE_reg.instr <= NOP;
-                ID_EX_reg             <= insert_NOP;  -- NOP control signals       
+                ID_EX_STAGE_reg   <= EMPTY_inst_pc;
+                ID_EX_reg         <= insert_NOP;    
+                   
             else
-                -- replace the instruction with NOP and make pc = 0
-                if flush = '1' then   
-                   ID_EX_STAGE_reg        <= EMPTY_inst_pc;
-                    ID_EX_reg             <= insert_NOP;  -- NOP control signals  
+                if is_bubble.flush = FLUSH then   
+                   ID_EX_STAGE_reg   <= EMPTY_inst_pc;
+                   ID_EX_reg         <= insert_NOP;  
+                     
                 else   
                     -- Normal advance
-                    ID_EX_STAGE_reg <= ID_STAGE;
-                    ID_EX_reg       <= ID;     
+                    if ID_STAGE.valid = VALID then
+                        ID_EX_STAGE_reg <= ID_STAGE;
+                        ID_EX_reg       <= ID;     
+                    else
+                        -- do nothing
+                    end if;
                 end if;
             end if;
         end if;
     end process;
 
-    
     ID_EX_STAGE     <= ID_EX_STAGE_reg;
     ID_EX           <= ID_EX_reg;
 end Behavioral;

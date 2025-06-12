@@ -6,7 +6,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 library work;
-use work.Pipeline_Objects.all;
+use work.Pipeline_Types.all;
 use work.const_Types.all;
 
 entity INST_MEM is

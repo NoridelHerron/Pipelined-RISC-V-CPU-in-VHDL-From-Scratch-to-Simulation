@@ -16,14 +16,18 @@ package Pipeline_Types is
         FORWARD_EX_MEM      -- "10"
         );
         
-    type numStall is (
-        STALL_NONE,     -- "00" 
-        STALL_NEEDED    -- "10"
+   type control_types is (
+        VALID, NOT_VALID, FLUSH, STALL, NONE
         );
         
     type FORWARD is record
-        A : ForwardingType;
-        B : ForwardingType;
+        A           : ForwardingType;
+        B           : ForwardingType;
+    end record;
+    
+    type control_sig is record
+        flush       : control_types;      
+        stall       : control_types;    
     end record;
 
     type reg_Type is record
@@ -32,6 +36,7 @@ package Pipeline_Types is
     end record;
 
     type PipelineStages_Inst_PC is record
+        valid       : control_types; 
         instr       : std_logic_vector(DATA_WIDTH-1 downto 0);      -- instructions
         pc          : std_logic_vector(DATA_WIDTH-1 downto 0);      -- program counter
     end record;

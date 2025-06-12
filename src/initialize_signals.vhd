@@ -8,8 +8,14 @@ package initialize_Types is
     
     -- Initialize all 
     constant EMPTY_inst_pc : PipelineStages_Inst_PC := (
-        instr       => x"00000013",
-        pc          => (others => '0')
+        valid   => NOT_VALID,
+        instr   => x"00000013",
+        pc      => (others => '0')
+    );
+    
+    constant EMPTY_control_sig : control_sig := (
+        flush   => NONE,     -- register source 1 value
+        stall   => NONE
     );
     
     constant EMPTY_ID_EX_Type : ID_EX_Type := (
