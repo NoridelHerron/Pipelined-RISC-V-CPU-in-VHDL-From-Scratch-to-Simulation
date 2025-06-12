@@ -7,7 +7,6 @@ use std.env.all;
 
 -- CUSTOMIZED PACKAGE
 library work;
-use work.reusable_function.all;
 use work.Pipeline_Types.all;
 use work.const_Types.all;
 use work.initialize_Types.all;
@@ -22,19 +21,18 @@ architecture sim of tb_CPU_RISCV is
     -- signals can be rearrange in any order
     signal clk              : std_logic := '0';
     signal reset            : std_logic := '1';
-    signal IF_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal ID_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal Forward          : FORWARD                       := EMPTY_FORW_Type;
-    signal stall            : numStall                      := STALL_NONE;
-    signal ID_EX            : ID_EX_Type                    := EMPTY_ID_EX_Type;  
-    signal ID_reg           : reg_Type                      := EMPTY_reg_Type;
-    signal EX_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal is_flush         : std_logic                     := '0';
-    signal EX_MEM           : EX_MEM_Type                   := EMPTY_EX_MEM_Type; 
-    signal MEM_STAGE        : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal MEM_WB           : MEM_WB_Type                   := EMPTY_MEM_WB_Type;
-    signal WB_STAGE         : PipelineStages_Inst_PC        := EMPTY_inst_pc;
-    signal WB               : WB_Type                       := EMPTY_WB_Type;
+    signal IF_STAGE         : PipelineStages_Inst_PC    := EMPTY_inst_pc;
+    signal ID_STAGE         : PipelineStages_Inst_PC    := EMPTY_inst_pc;
+    signal Forward          : FORWARD                   := EMPTY_FORW_Type;
+    signal ID_EX            : ID_EX_Type                := EMPTY_ID_EX_Type;  
+    signal ID_reg           : reg_Type                  := EMPTY_reg_Type;
+    signal is_bubble        : control_sig               := EMPTY_control_sig;
+    signal EX_STAGE         : PipelineStages_Inst_PC    := EMPTY_inst_pc;
+    signal EX_MEM           : EX_MEM_Type               := EMPTY_EX_MEM_Type; 
+    signal MEM_STAGE        : PipelineStages_Inst_PC    := EMPTY_inst_pc;
+    signal MEM_WB           : MEM_WB_Type               := EMPTY_MEM_WB_Type;
+    signal WB_STAGE         : PipelineStages_Inst_PC    := EMPTY_inst_pc;
+    signal WB               : WB_Type                   := EMPTY_WB_Type;
    
 begin
     DUT: entity work.RISCV_CPU
@@ -51,8 +49,7 @@ begin
                     MEM_WB_out          => MEM_WB,
                     WB_out              => WB,
                     reg_out             => ID_reg,
-                    flush               => is_flush,      
-                    num_stall           => stall,
+                    bubble              => is_bubble,      
                     Forward_out         => Forward    
                  );
     
