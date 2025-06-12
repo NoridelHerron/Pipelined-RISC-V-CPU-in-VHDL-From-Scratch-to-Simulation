@@ -9,22 +9,7 @@
 
 ## Tool Used
 Vivado version 24.2
-Vivado XSim (Built-in simulator, used for VHDL simulation and waveform viewing)
-
-## Open Questions
-Design Questions — Port Entry vs Internal Signal
-
-As I was building my pipeline registers and debugging signal flow, I started wondering about the trade-offs between two design choices:
-
-- Option 1: Expose signals as port entries between modules
-- Option 2: Keep signals internal and connect them through internal logic
-
-Questions I’m still exploring:
-- From a design clarity and maintainability perspective, which approach scales better as the system grows?
-- From a hardware synthesis / resource cost perspective, does using ports introduce more overhead than using internal signals?
-- Are there any best practices or guidelines for when to prefer one over the other in pipeline register design?
-
-If anyone has insights or resources on this, I would love to learn! I’d like to apply better-informed decisions on my next project.
+Vivado XSim (Built-in simulator, used for VHDL simulation and waveform 
 
 ## Pipeline Diagram
 IF --> ID --> EX --> MEM --> WB
@@ -32,11 +17,11 @@ IF --> ID --> EX --> MEM --> WB
 ### Personal Note
 - I initially followed existing RISC-V pipeline diagrams, but found they lacked enough detailed information for full implementation. To address this, I made several design modifications based on my own testing and understanding of hazard timing and pipeline behavior. The resulting pipeline reflects these practical adjustments.
 
-- While refactoring components for my Superscalar pipeline, I found a few areas in my original ALU design that could be improved for better stability and scalability.
+While working on my Superscalar pipeline, I noticed a few ways to improve the original ALU design from my 5-stage pipeline — making it more stable and easier to scale.
 
-The 5-stage pipeline is still a solid learning baseline, but if you’re planning to add advanced features, I’d definitely encourage you to check out the refactored ALU in my Superscalar repo — and feel free to play around with it! Experimenting and testing is the best way to understand how it works and how to adapt it to your own designs. 🚀
+The 5-stage version is still a great learning tool, but if you’re thinking about adding more advanced features, I recommend checking out the updated ALU in my Superscalar repo. Feel free to try it out and experiment — that’s the best way to really understand how it works and how to build on it. 🚀
 
-If you’re curious why I refactored it this way, just send me a message — happy to share what I learned!
+If you’re curious about why I changed certain things, just reach out — I’d be happy to walk you through what I learned!
 
 ### Design Note — Control Signals
 Instead of passing the full opcode through the pipeline, I generate compact control signals during instruction decode. This reduces the number of bits transferred between stages and simplifies control logic in later stages.
