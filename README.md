@@ -9,7 +9,7 @@
 
 ## Tool Used
 Vivado version 24.2
-Vivado XSim (Built-in simulator, used for VHDL simulation and waveform 
+Vivado XSim Built-in simulator, used for VHDL simulation and waveform 
 
 ## Pipeline Diagram
 IF --> ID --> EX --> MEM --> WB
@@ -23,20 +23,11 @@ The 5-stage version is still a great learning tool, but if you’re thinking abo
 
 If you’re curious about why I changed certain things, just reach out — I’d be happy to walk you through what I learned!
 
-### Design Note — Control Signals
-Instead of passing the full opcode through the pipeline, I generate compact control signals during instruction decode. This reduces the number of bits transferred between stages and simplifies control logic in later stages.
-
-While designing this, I considered whether to use:
-- a packed 2-bit control field, or
-- 3 individual control bits.
-
-At the moment, it looks like using a 2-bit field is more efficient, since combining 3 single bits would use more total bits overall. However, not all pipeline stages need all of the control signals, so I’m still evaluating the best structure.
-
-If anyone has recommendations or best practices for control signal encoding in pipelined CPU designs, I would love to learn from your experience!
+My **Superscalar repository** will serves as an improved version of my **earlier Harvard architecture project**. Each module is **fully modular** and **individually verified with at least 10,000** randomized test cases. I’ve also integrated more SystemVerilog-style enum types to enhance waveform readability and simplify debugging.
 
 ### Design Note — IF STAGE
 **Pipeline Reset Handling**: 
-After reset, I added a conditional check to insert a NOP instead of fetching the instruction at address 0. This prevents the appearance of duplicate instructions at PC = 0, which could otherwise cause confusion in the waveform. Additionally, I designed the IF stage to always pass the current PC and current instruction to the next stage. This ensures that each stage clearly reflects the actual instruction residing at its corresponding PC address, making the pipeline flow easier to trace and debug.
+After reset, I added logic to invalidate the first fetched instruction, ensuring that the pipeline register between the IF and ID stages ignores it. This prevents any confusion caused by a duplicated instruction at PC = 0 in the waveform. Additionally, due to signal assignment timing and possible memory latency, the current PC will now correctly reflect the active instruction for one full cycle before updating.
 
 ### Design Note: ID STAGE
 - I encapsulated the Decoder and Hazard Detection Unit (HDU) into a single ID_STAGE module, because the earliest point where hazards can be detected is during decoding — once the instruction type, register sources, and dependencies are known.
@@ -79,28 +70,24 @@ When a stall is detected, I pass the stall signal to multiple stages:
         end if;
 
 ### Design Note: Branch
-In the Decode stage, I decode the branch instruction and rearrange the immediate value according to the RISC-V specification. The immediate is then shifted left by one bit and added to the current PC to compute the branch target address. This branch target is passed down the pipeline to the IF stage. If the flush signal is later asserted (when the branch condition is determined to be true), the branch target will become the next PC. However, due to pipeline latency, the instruction at the branch target address will not appear in the pipeline until the following cycle. 
+In the Decode stage, I decode the branch instruction and rearrange the immediate value according to the RISC-V specification. The immediate is then shifted left by one bit and added to the current PC to compute the branch target address. This branch target is passed down the pipeline to the IF stage. If the flush signal is later asserted (when the branch condition is determined to be true), the branch target will become the next PC. 
 
-In the EX stage, I initially planned to use the ALU flags to evaluate the branch condition and decide whether to take the branch. However, I realized that relying on the ALU would complicate the design because I cannot force the funct3 (f3) field to match the add_sub operation, even though funct7 (f7) would be fine. Since funct3 is needed to determine the specific type of branch, instead of adding another control signal, I decided to directly compare the register data. This approach simplifies the logic and avoids unnecessary complexity. If the branch is taken, the flush signal is asserted to update the PC and clear any incorrect instructions already in the pipeline.
+In the EX stage, I initially planned to use the ALU flags to evaluate the branch condition and decide whether to take the branch. However, I realized that relying on the ALU would complicate the design because I cannot force the funct3 (f3) field to match the add_sub operation, even though funct7 (f7) would be fine. Since funct3 is needed to determine the specific type of branch, instead of adding another control signal, I decided to directly compare the register data. This approach simplifies the logic and avoids unnecessary complexity. If the branch is taken, the flush signal is asserted to update the PC and clear any incorrect instructions already in the pipeline. 
 
 ### Design Note: Jump and flush
 In the Decode stage, I decode the instruction and rearrange the immediate value according to the J-type format. I then shift the immediate left by one bit and add it to the current PC to compute the jump target address. For the return address (which should be stored in the destination register), I calculate PC + 4. To ensure this return address is written to the register file, I set RegWrite to 1 when a jump instruction is detected.
 
 Since a jump is unconditional, in the EX stage, I added logic to automatically assert the flush signal when a jump instruction is processed. Additionally, the return address is assigned to the EX result in this stage so that it can be written back to the register file.
 
-Similar to branch instructions, due to pipeline latency, the instruction at the jump target address will not appear in the pipeline until the next cycle. As a result, you will see one "raw" instruction before the actual target instruction is fetched and enters the pipeline. I initially considered inserting a NOP (similar to what I do after reset), but this situation is different because I cannot predict exactly when a jump will occur. I also thought about generating the flush signal during the ID stage since the jump is unconditional, but I realized that the target address and control signals are not fully stable until the instruction reaches the ID/EX register (EX stage). Therefore, I chose to generate the flush signal in the EX stage for proper timing and stability.
-
 ### Debug Tips:
 - I chose to inject a NOP into the ID/EX stage during a stall so that it is easy to visualize the stall in the waveform — the NOP acts as a clear marker.
 - This makes it obvious when the pipeline is holding due to a hazard, and prevents any misleading partial or invalid instruction from appearing downstream.
 - Setting the reg values to zero in the Forwarding MUX also helps ensure that EX_STAGE outputs 0 during stalls.
 
-![I tried to walk through myself what I should expect](images/instr_diagram.png) 
-Note: I tried to walk through myself what I should expect
-![old result](images/old_wave_duplicate.png) 
-Note: Old wave with duplicates
-![see more images in the folder](images/latest1.png) 
-Note: latest waveform
+Note: I highlighted the hazard being detected in the MEM/WB stage.
+![data hazards](images/DATA_HAZARDS.png) 
+Note: I highlighted the instruction propagation, including jump and branch behavior, and how flushes are handled. I also added detailed notes throughout to explain the flow.
+![jump, branch, and flush](images/latest1.png) 
 
 **How did I confirm the pipeline is working properly?** 
 To verify that the pipeline stages were functioning as intended, I observed the flow of instructions across each stage in the waveform viewer.
@@ -131,9 +118,6 @@ This is why in my design, I pass PC and instruction through all stages — the m
 However, just seeing "all green" does not guarantee that everything is working correctly. You still need to carefully check that each value matches your expectations and is appearing at the correct stage and cycle. If something looks off, go back and investigate — even if the signal colors look fine.
 
 ### Wave debugging
-**Warning Note**: If you're a beginner like me, don’t do what I did — avoid trying to add too many instructions at once! Start with just a couple of known instructions and add more as you get comfortable. Otherwise, you’ll start seeing "double" in the waveforms. 
-
-**Additional Note**: Be patient — debugging is a skill that improves with practice.
 
 ### Tcl Console technique
 For the full pipeline integration, I did not use the Tcl console extensively yet — because I am still building a solid understanding of how pipelined CPUs work. My goal is to improve this as I progress through the project. If anyone has recommendations or best practices for using Tcl console in this context, I would love to learn from them.
