@@ -8,7 +8,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 -- CUSTOMIZED PACKAGE
 library work;
-use work.Pipeline_Types.all;
+use work.Pipeline_Objects.all;
 use work.const_Types.all;
 use work.initialize_Types.all;
 
