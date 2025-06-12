@@ -15,7 +15,7 @@ Vivado XSim (Built-in simulator, used for VHDL simulation and waveform
 IF --> ID --> EX --> MEM --> WB
 
 ### Personal Note
-- I initially followed existing RISC-V pipeline diagrams, but found they lacked enough detailed information for full implementation. To address this, I made several design modifications based on my own testing and understanding of hazard timing and pipeline behavior. The resulting pipeline reflects these practical adjustments.
+I initially followed existing RISC-V pipeline diagrams, but found they lacked enough detailed information for full implementation. To address this, I made several design modifications based on my own testing and understanding of hazard timing and pipeline behavior. The resulting pipeline reflects these practical adjustments.
 
 While working on my Superscalar pipeline, I noticed a few ways to improve the original ALU design from my 5-stage pipeline — making it more stable and easier to scale.
 
