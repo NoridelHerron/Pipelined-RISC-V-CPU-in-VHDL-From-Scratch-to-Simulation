@@ -197,6 +197,7 @@ Under the following terms:
 
 For commercial licensing inquiries, please contact: [noridel.herron@gmail.com]
 License details: https://creativecommons.org/licenses/by-nc/4.0/
+
 ---
 
 ## ⚠️ Disclaimer
